@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>ちゃぶ台返しリメンバー</title>
+  <meta name="description" content="スマホを振り上げて、ちゃぶ台を競技場の彼方へ飛ばせ！ 名作「ちゃぶ台返し」がWEBアプリで復活。">
+  <meta name="theme-color" content="#7a3b12">
+  <meta property="og:title" content="ちゃぶ台返しリメンバー">
+  <meta property="og:description" content="スマホを振り上げて、ちゃぶ台を競技場の彼方へ飛ばせ！">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <section id="title" class="screen">
+    <div class="logo">
+      <div class="logo-main">ちゃぶ台返し</div>
+      <div class="logo-sub">リメンバー</div>
+    </div>
+    <p class="lead">スマホを振り上げて、ちゃぶ台を<br>競技場の彼方へ飛ばせ！</p>
+    <button id="btnStart" class="btn big">はじめる</button>
+    <ul class="notes">
+      <li>⚠ スマホがすっぽ抜けないよう<b>しっかり握って</b>（ストラップ推奨）</li>
+      <li>周りに人や物がないか確認してから遊んでね</li>
+      <li>モーションセンサー・コンパス・マイクを使います</li>
+    </ul>
+  </section>
+
+  <section id="ready" class="screen hidden panel">
+    <div class="best">自己ベスト <b id="bestVal">--</b></div>
+    <ol id="howtoMotion" class="howto">
+      <li>画面の右（競技場）の方を向いて立つ</li>
+      <li>「構える」を押す</li>
+      <li>砲丸投げのように<b>クルッと1回転</b>して正面に戻り、<b>叫びながら</b>スマホを<b>振り上げる！</b></li>
+    </ol>
+    <ol id="howtoTouch" class="howto hidden">
+      <li>「構える」を押す</li>
+      <li>画面を指で<b>ぐるぐる回して</b>勢いをつける</li>
+      <li>そのまま<b>右上にシュッ！</b>とフリック（叫ぶと気合アップ）</li>
+    </ol>
+    <div class="ehou"><span id="ehouYear"></span>年の恵方 <b id="ehouVal"></b> に向かって投げると縁起ボーナス</div>
+    <div id="chips" class="chips"></div>
+    <button id="btnArm" class="btn big">構える</button>
+    <button id="btnMode" class="link"></button>
+  </section>
+
+  <section id="hud" class="screen hidden">
+    <div id="hudTitle" class="hud-title">回れ！叫べ！<br>振り上げろ！</div>
+    <div id="hudSub" class="hud-sub"></div>
+    <div class="meters">
+      <div class="meter"><span>腕力</span><div class="bar"><i id="mAcc"></i></div></div>
+      <div class="meter"><span>キレ</span><div class="bar"><i id="mGyro"></i></div></div>
+      <div class="meter"><span>気合</span><div class="bar"><i id="mVoice"></i></div></div>
+      <div class="meter-row"><span>回転 <b id="mSpin">0°</b></span><span>向き <b id="mDir">--</b></span></div>
+    </div>
+    <button id="btnCancel" class="btn small ghost">やめる</button>
+  </section>
+
+  <section id="result" class="screen hidden">
+    <div class="card">
+      <div id="resKind" class="res-kind hidden"></div>
+      <div class="res-dist"><span id="resDist">0.00</span><small>m</small></div>
+      <div id="resFoul" class="res-foul hidden">ファウル</div>
+      <div id="resNew" class="res-new hidden">🎉 自己ベスト更新！</div>
+      <div id="resTitle" class="res-title"></div>
+      <table id="resTable" class="res-table"></table>
+      <p id="resTip" class="tip"></p>
+      <div class="btns">
+        <button id="btnAgain" class="btn">もう一度</button>
+        <button id="btnShare" class="btn ghost">シェア</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
