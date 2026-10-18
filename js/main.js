@@ -4,6 +4,8 @@ import { World } from './world.js';
 import { computeLaunch, meterScores, rankTitle, tipFor, dirName, ehouOf, WORLD_RECORD } from './physics.js';
 
 const $ = (id) => document.getElementById(id);
+// シェア時に載せるURL（ゲームの紹介記事）
+const SHARE_URL = 'https://techgym.jp/column/claude-code-game-chabudai/';
 const canvas = $('game');
 const ctx = canvas.getContext('2d');
 const sensors = new SensorHub();
@@ -227,7 +229,7 @@ $('btnShare').addEventListener('click', async () => {
   const text = L.foul
     ? `ちゃぶ台返しリメンバーで${who}${d}m飛ばした…けどファウル！ #ちゃぶ台返しリメンバー`
     : `ちゃぶ台返しリメンバーで${who}${d}m飛ばした！ 称号「${rankTitle(world.landX)}」 #ちゃぶ台返しリメンバー`;
-  const url = location.href.split('#')[0];
+  const url = SHARE_URL;
   if (navigator.share) {
     try { await navigator.share({ title: 'ちゃぶ台返しリメンバー', text, url }); } catch { /* キャンセル */ }
   } else {
