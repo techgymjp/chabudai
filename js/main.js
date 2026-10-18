@@ -51,9 +51,24 @@ function show(id) {
 
 /* ---------- タイトル ---------- */
 
+// 縦画面のときは横向きにするよう促す（「縦のまま遊ぶ」で閉じられる）
+$('btnPortrait').addEventListener('click', () => {
+  document.body.classList.add('allow-portrait');
+});
+
+// Android は全画面にすると横向きに固定できる（iOS は非対応なので案内表示だけ）
+function lockLandscape() {
+  const el = document.documentElement;
+  if (!el.requestFullscreen || !screen.orientation || !screen.orientation.lock) return;
+  el.requestFullscreen({ navigationUI: 'hide' })
+    .then(() => screen.orientation.lock('landscape'))
+    .catch(() => { /* 非対応のブラウザ */ });
+}
+
 $('btnStart').addEventListener('click', () => {
   // iOS は許可ダイアログをクリック処理の中で同期的に出す必要がある
   audio.unlock();
+  lockLandscape();
   const perm = sensors.requestPermission();
   const mic = audio.requestMic();
   sensors.start();

@@ -56,11 +56,13 @@ export class SensorHub {
     // 端末座標系 (x:右, y:上端, z:画面手前) での鉛直上向きベクトル
     this.orientUp = [-Math.sin(g) * Math.cos(b), Math.sin(b), Math.cos(g) * Math.cos(b)];
     this.orientT = now();
-    if (e.webkitCompassHeading != null && !isNaN(e.webkitCompassHeading)) {
-      this.heading = e.webkitCompassHeading;
-      this.compassSeen = true;
-    } else if (e.absolute && e.alpha != null) {
-      this.heading = (360 - e.alpha) % 360;
+    let raw = null;
+    if (e.webkitCompassHeading != null && !isNaN(e.webkitCompassHeading)) raw = e.webkitCompassHeading;
+    else if (e.absolute && e.alpha != null) raw = 360 - e.alpha;
+    if (raw != null) {
+      // 横向きで持っていても、画面の向きぶんを補正して体の正面の方位にする
+      const angle = (screen.orientation && screen.orientation.angle) ?? window.orientation ?? 0;
+      this.heading = (((raw + angle) % 360) + 360) % 360;
       this.compassSeen = true;
     }
   }

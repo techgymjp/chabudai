@@ -128,6 +128,31 @@ canvas {
 .meter-row { display: flex; justify-content: space-between; font-size: 13px; }
 .meter-row b { color: var(--gold); font-size: 16px; }
 
+/* 横向きにしてね */
+#rotate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(74, 34, 10, 0.92);
+  color: #fff;
+}
+#rotate p { font-family: var(--font); font-size: 24px; margin: 0; }
+#rotate b { color: var(--gold); }
+#rotate small { opacity: 0.8; }
+#rotate .link { color: #fff; margin-top: 16px; }
+.rotate-phone { font-size: 72px; animation: turn 1.6s ease-in-out infinite; }
+@keyframes turn { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+@media (orientation: portrait) {
+  body:not(.allow-portrait) #rotate { display: flex; }
+}
+
 /* 結果 */
 #result { justify-content: flex-end; }
 .card {
@@ -158,3 +183,46 @@ canvas {
 .mbar i { display: block; height: 100%; background: linear-gradient(90deg, #ffb400, var(--red)); }
 .tip { font-size: 13px; background: #fff; border-radius: 8px; padding: 8px 10px; margin: 10px 0; text-align: left; }
 .btns { display: flex; gap: 12px; justify-content: center; padding-bottom: 6px; }
+
+/* ---------- 横画面 ---------- */
+@media (orientation: landscape) {
+  .screen { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+
+  #title { flex-direction: row; flex-wrap: wrap; justify-content: center; align-content: center; gap: 12px 36px; }
+  #title .logo { flex: 0 0 auto; }
+  .logo-main { font-size: clamp(36px, 11vh, 72px); }
+  .logo-sub { font-size: clamp(18px, 6vh, 34px); }
+  #title .lead { flex: 0 0 auto; }
+  #title .notes { flex: 0 0 100%; max-width: 560px; }
+
+  /* 構え: 右側のパネル。左側に親父とちゃぶ台が見える */
+  .panel {
+    top: 0;
+    left: auto;
+    right: 0;
+    width: min(420px, 48vw);
+    justify-content: center;
+    overflow-y: auto;
+    padding-top: max(12px, env(safe-area-inset-top));
+    background: linear-gradient(90deg, transparent, rgba(255, 248, 231, 0.95) 14%);
+    padding-left: 36px;
+  }
+  .howto { font-size: 13px; line-height: 1.45; }
+  .btn.big { font-size: 22px; padding: 10px 40px; }
+
+  /* 計測中: 文字は上、メーターは右下 */
+  #hud { padding-top: max(10px, env(safe-area-inset-top)); gap: 6px; }
+  .hud-title { font-size: clamp(26px, 9vh, 48px); }
+  .hud-title br { display: none; }
+  .meters { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: 12px; width: min(300px, 42vw); margin: 0; }
+  #btnCancel { position: fixed; left: max(16px, env(safe-area-inset-left)); bottom: 16px; }
+
+  /* 結果: 右側のカード。左側に着地点が見える */
+  #result { align-items: flex-end; justify-content: center; padding-top: 10px; padding-bottom: 10px; }
+  #result .card { width: min(400px, 52vw); padding: 10px 14px; }
+  .res-dist { font-size: clamp(40px, 13vh, 64px); }
+  .res-title { font-size: 17px; margin: 4px 0 6px; }
+  .res-table { font-size: 12px; }
+  .res-table th, .res-table td { padding: 2px 4px; }
+  .tip { margin: 6px 0; font-size: 12px; }
+}

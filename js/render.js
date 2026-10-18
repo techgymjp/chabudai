@@ -380,20 +380,24 @@ const ADS = [
   ['ハゲ ✕ 頑固', '#e17055', '#fff'],
 ];
 
-export function drawSky(ctx, W, hy, camPx) {
-  const g = ctx.createLinearGradient(0, 0, 0, hy);
-  g.addColorStop(0, '#5fb4f0');
+export function drawSky(ctx, W, H, hy, camPx, lift = 0) {
+  const g = ctx.createLinearGradient(0, hy - H - lift * 0.5, 0, hy);
+  g.addColorStop(0, '#2f86d6');
+  g.addColorStop(0.6, '#5fb4f0');
   g.addColorStop(1, '#d8f0ff');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, hy);
   ctx.fillStyle = 'rgba(255,240,180,0.9)';
-  ell(ctx, W * 0.82, hy * 0.18, 26, 26);
+  ell(ctx, W * 0.82, H * 0.12 + lift * 0.05, 26, 26);
   ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,0.92)';
   const span = W + 240;
+  const vspan = H * 1.1;
   for (const [fx, fy, s] of CLOUDS) {
+    // 高く上がると雲が下に流れていく（縦にも繰り返す）
     const x = ((((fx * span - camPx * 1.2) % span) + span) % span) - 120;
-    const y = fy * hy + 20;
+    const y = ((((fy * 2.5 * H + lift * 0.35) % vspan) + vspan) % vspan) - 30;
+    if (y > hy + 20) continue;
     ell(ctx, x, y, 38 * s, 14 * s);
     ctx.fill();
     ell(ctx, x - 22 * s, y + 4, 22 * s, 10 * s);

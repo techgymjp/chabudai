@@ -11,7 +11,7 @@ const WINDUP = 0.32;
 const TABLE_REST = { x: 0.68, y: TABLE_HH };
 const PIVOT = { x: TABLE_REST.x + 0.29, y: 0 }; // ちゃぶ台は奥の脚を支点に起き上がる
 const READY_HANDS = [0.31, 0.33];
-const READY_CAM_X = 0.45;
+const SCENE_X = 0.45; // 親父とちゃぶ台の中心あたり
 const LINES = ['こんな飯が食えるかぁ！', 'ちゃぶ台返しじゃあ！', '父をなめるなぁ！', 'ええい、やめじゃ！', 'なんじゃこの味噌汁は！', 'おかわりが遅いっ！'];
 
 const ease = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
@@ -24,7 +24,7 @@ export class World {
     this.W = 1;
     this.H = 1;
     this.best = 0;
-    this.cam = { x: READY_CAM_X, ppm: 150 };
+    this.cam = { x: SCENE_X, ppm: 150, lift: 0 };
     this.basePpm = 150;
     this.agitation = 0;
     this.onLand = null;
@@ -35,10 +35,25 @@ export class World {
   resize(W, H) {
     this.W = W;
     this.H = H;
-    this.horizonY = H * 0.44;
-    this.groundY = H * 0.54;
-    this.basePpm = Math.min(W / 2.6, (this.groundY - H * 0.12) / 1.95);
-    if (this.phase === 'ready') this.cam.ppm = this.basePpm;
+    this.landscape = W >= H;
+    this.baseHorizonY = H * (this.landscape ? 0.5 : 0.44);
+    this.baseGroundY = H * (this.landscape ? 0.66 : 0.54);
+    this.basePpm = Math.min(W / (this.landscape ? 4.4 : 2.6), (this.baseGroundY - H * 0.12) / 1.95);
+    // 遠くまで飛んでもこれ以上はズームアウトしない（横画面で約55m幅）
+    this.minPpm = Math.max(W, H) / 55;
+    if (this.phase === 'ready') {
+      this.cam.ppm = this.basePpm;
+      this.cam.x = this.readyCamX();
+    }
+  }
+
+  // 高く飛ぶとカメラが上がり、地面ごと下にスクロールする
+  get groundY() { return this.baseGroundY + this.cam.lift; }
+  get horizonY() { return this.baseHorizonY + this.cam.lift; }
+
+  // 横画面では右側にパネルが出るので、親父を画面の左寄りに置く
+  readyCamX() {
+    return this.landscape ? SCENE_X + (this.W * 0.2) / this.basePpm : SCENE_X;
   }
 
   reset() {
@@ -55,8 +70,9 @@ export class World {
     this.restT = 0;
     this.done = false;
     this.flightT = 0;
-    this.cam.x = READY_CAM_X;
     this.cam.ppm = this.basePpm;
+    this.cam.x = this.readyCamX();
+    this.cam.lift = 0;
   }
 
   beginThrow(launch) {
@@ -173,7 +189,7 @@ export class World {
     o.x += o.vx * h;
     o.y += o.vy * h;
     o.rot += o.rotV * h;
-    const ext = Math.abs(o.hw * Math.sin(o.rot)) + Math.abs(o.hh * Math.cos(o.rot));
+    const ext = this.ext(o);
     if (o.y - ext > 0) return;
     o.y = ext;
     if (!o.landed) {
@@ -243,14 +259,18 @@ export class World {
 
   updateCam(dt) {
     const c = this.cam;
-    let tx = READY_CAM_X, tp = this.basePpm;
+    let tx = this.readyCamX(), tp = this.basePpm;
+    const room = this.baseGroundY - this.H * 0.3; // 飛んでいる物を画面上端から離しておく余白
     if (this.phase === 'flight' && this.main) {
       const m = this.main;
-      tp = Math.max(2.5, Math.min(this.basePpm, (this.groundY - this.H * 0.2) / (m.y + 1.4)));
-      tx = Math.max(READY_CAM_X, m.x + (this.W * 0.06) / c.ppm);
+      tp = Math.max(this.minPpm, Math.min(this.basePpm, room / (m.y + 1.4)));
+      // 結果カード（横画面では右側）に着地点が隠れないよう、着地後は左に寄せる
+      const lead = this.done && this.landscape ? 0.25 : this.landscape ? 0.12 : 0.06;
+      tx = Math.max(SCENE_X, m.x + (this.W * lead) / c.ppm);
     }
     c.ppm = Math.exp(Math.log(c.ppm) + (Math.log(tp) - Math.log(c.ppm)) * (1 - Math.exp(-dt * 5)));
     c.x += (tx - c.x) * (1 - Math.exp(-dt * 6));
+    c.lift = this.phase === 'flight' && this.main ? Math.max(0, (this.main.y + 0.8) * c.ppm - room) : 0;
   }
 
   /* ---------------- 描画 ---------------- */
@@ -273,20 +293,40 @@ export class World {
     ctx.restore();
   }
 
+  // ズームアウトしても豆粒にならないよう、最低 minPx の大きさで描く。
+  // 拡大しても地面にめり込まないよう、一番下の点を基準に位置を合わせる
+  inWorldMin(ctx, x, y, r, size, minPx, ext, fn) {
+    const ppm = this.cam.ppm;
+    const s = Math.max(ppm, minPx / size);
+    ctx.save();
+    ctx.translate(this.sx(x), this.sy(y - ext) - ext * s);
+    ctx.scale(s, -s);
+    if (r) ctx.rotate(r);
+    fn();
+    ctx.restore();
+    return s;
+  }
+
+  ext(o) {
+    return Math.abs(o.hw * Math.sin(o.rot)) + Math.abs(o.hh * Math.cos(o.rot));
+  }
+
   draw(ctx) {
     const { W, H } = this;
     const camPx = this.cam.x;
-    drawSky(ctx, W, this.horizonY - H * 0.14 - 6, camPx);
+    drawSky(ctx, W, H, this.horizonY - H * 0.14 - 6, camPx, this.cam.lift);
     drawStands(ctx, W, H, this.horizonY, camPx);
     this.drawField(ctx);
     this.drawFlags(ctx);
 
     // 影
+    const minTable = this.H * 0.16;
     for (const o of this.objs) {
-      const s = 1 / (1 + Math.max(0, o.y) * 0.15);
-      ctx.fillStyle = `rgba(0,0,0,${0.25 * s})`;
+      const k = 1 / (1 + Math.max(0, o.y) * 0.15);
+      const s = Math.max(this.cam.ppm, (o.kind === 'table' ? minTable / (TABLE_HW * 2) : minTable * 1.5 / 1.7));
+      ctx.fillStyle = `rgba(0,0,0,${0.25 * k})`;
       ctx.beginPath();
-      ctx.ellipse(this.sx(o.x), this.groundY + 2, Math.max(3, o.hw * this.cam.ppm * s), Math.max(1.5, 0.06 * this.cam.ppm * s), 0, 0, Math.PI * 2);
+      ctx.ellipse(this.sx(o.x), this.groundY + 2, Math.max(3, o.hw * s * k), Math.max(1.5, 0.06 * s * k), 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -307,13 +347,13 @@ export class World {
       this.inWorld(ctx, sh, 0, 0, () => drawDad(ctx, this.dad.pose, this.dad.hands, { shout, angry: this.phase !== 'ready' || this.agitation > 0.2 }));
     }
     for (const o of this.objs) {
-      this.inWorld(ctx, o.x, o.y, o.rot, () => {
-        if (o.kind === 'table') drawTable(ctx);
-        else {
+      if (o.kind === 'table') this.inWorldMin(ctx, o.x, o.y, o.rot, TABLE_HW * 2, minTable, this.ext(o), () => drawTable(ctx));
+      else {
+        this.inWorldMin(ctx, o.x, o.y, o.rot, 1.7, minTable * 1.5, this.ext(o), () => {
           ctx.translate(0, -0.85);
           drawDad(ctx, 1, DAD_HANDS_UP, { shout: true, angry: false });
-        }
-      });
+        });
+      }
     }
     this.drawParts(ctx);
     this.drawBubble(ctx);
@@ -364,7 +404,7 @@ export class World {
     ctx.stroke();
 
     // 距離ライン
-    const labelStep = cam.ppm < 4 ? 20 : 10;
+    const labelStep = cam.ppm < 9 ? 20 : 10;
     for (let x = Math.max(5, x0); x < x1; x += 5) {
       const major = x % 10 === 0;
       ctx.strokeStyle = major ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)';
@@ -424,7 +464,9 @@ export class World {
       const foul = this.launch.foul;
       flag(this.landX, foul ? '#ff3030' : '#ffd400', foul ? 'ファウル' : '');
       const label = `${this.landX.toFixed(2)}m`;
-      outlinedText(ctx, label, Math.min(this.W - 70, Math.max(70, this.sx(this.landX))), this.groundY - 100, 30, foul ? '#ff8080' : '#ffe14d', '#222');
+      ctx.font = `30px ${FONT}`;
+      const half = ctx.measureText(label).width / 2 + 8;
+      outlinedText(ctx, label, Math.min(this.W - half, Math.max(half, this.sx(this.landX))), this.groundY - 100, 30, foul ? '#ff8080' : '#ffe14d', '#222');
     }
   }
 
@@ -434,7 +476,7 @@ export class World {
       const x = this.sx(p.x), y = this.sy(p.y);
       if (x < -50 || x > this.W + 50) continue;
       if (p.type === 'dish') {
-        this.inWorld(ctx, p.x, p.y, p.rot, () => drawDish(ctx, p.dish));
+        this.inWorldMin(ctx, p.x, p.y, p.rot, 0.15, this.H * 0.04, 0, () => drawDish(ctx, p.dish));
       } else if (p.type === 'dust') {
         ctx.fillStyle = `rgba(160,130,90,${0.5 * p.life})`;
         ctx.beginPath();
@@ -461,7 +503,7 @@ export class World {
     let ax, ay;
     if (b.on === 'main' && this.main) {
       ax = this.sx(this.main.x);
-      ay = this.sy(this.main.y + 0.9);
+      ay = this.sy(this.main.y) - Math.max(this.cam.ppm * 0.9, this.H * 0.16);
     } else {
       ax = this.sx(0.2);
       ay = this.sy(this.dad.pose > 0.5 ? 1.6 : 1.05);
@@ -494,16 +536,28 @@ export class World {
   }
 
   drawHud(ctx) {
-    // 空は飛んでいく物のために空けて、計器類は手前の芝生に置く
     const L = this.launch;
     const m = this.main;
     const d = this.landX ?? Math.max(0, m.x);
-    const top = this.groundY + (this.H - this.groundY) * 0.22;
-    if (this.landX == null) outlinedText(ctx, `${d.toFixed(1)}m`, this.W / 2, top, 40, '#fff', '#1b5e20');
     const w = L.wind;
     const wtxt = `風 ${w >= 0 ? '→ 追い風' : '← 向かい風'} ${Math.abs(w).toFixed(1)}m/s`;
+    const high = m.y > 3 ? `高さ ${m.y.toFixed(1)}m` : '';
+    if (this.landscape) {
+      // 横画面: 計器は上の隅に。飛んでいる物は画面上端から 30% 以上離してある
+      const size = Math.min(100, this.H * 0.24);
+      // 中央上はセリフの吹き出し用に空けておく
+      if (this.landX == null) outlinedText(ctx, `${d.toFixed(1)}m`, 16, 34, 36, '#fff', '#222', 'left');
+      outlinedText(ctx, wtxt, 16, 72, 13, '#fff', '#333', 'left');
+      if (high) outlinedText(ctx, high, 16, 94, 13, '#fff', '#333', 'left');
+      drawMinimap(ctx, this.W - size - 16, 16, size, this.landX ?? m.x, L.lateral, L.foul && this.landX != null, Math.max(d, 25));
+      return;
+    }
+    // 縦画面: 空は飛んでいく物のために空けて、計器類は手前の芝生に置く
+    const top = this.baseGroundY + (this.H - this.baseGroundY) * 0.22;
+    if (this.landX == null) outlinedText(ctx, `${d.toFixed(1)}m`, this.W / 2, top, 40, '#fff', '#1b5e20');
     const size = Math.min(110, this.W * 0.28, this.H - top - 60);
     outlinedText(ctx, wtxt, 16, this.H - 22, 13, '#fff', '#1b5e20', 'left');
+    if (high) outlinedText(ctx, high, 16, this.H - 44, 13, '#fff', '#1b5e20', 'left');
     drawMinimap(ctx, this.W - size - 16, this.H - size - 22, size, this.landX ?? m.x, L.lateral, L.foul && this.landX != null, Math.max(d, 25));
   }
 }
