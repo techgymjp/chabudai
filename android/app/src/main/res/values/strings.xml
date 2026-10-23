@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">ちゃぶ台返しリメンバー</string>
-    <string name="title_activity_main">ちゃぶ台返しリメンバー</string>
+    <string name="app_name">Table Flip Remember</string>
+    <string name="title_activity_main">Table Flip Remember</string>
     <string name="package_name">jp.techgym.chabudai</string>
     <string name="custom_url_scheme">jp.techgym.chabudai</string>
     <string name="admob_app_id">ca-app-pub-6411535997477460~8707026889</string>

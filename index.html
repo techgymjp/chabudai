@@ -22,46 +22,47 @@
 
   <div id="rotate">
     <div class="rotate-phone">📱</div>
-    <p>スマホを<b>横向き</b>にしてね</p>
-    <small>画面が回らないときは、画面の回転ロックを解除してください</small>
-    <button id="btnPortrait" class="link">縦のまま遊ぶ</button>
+    <p data-i18n-html="rotate.msg">スマホを<b>横向き</b>にしてね</p>
+    <small data-i18n="rotate.sub">画面が回らないときは、画面の回転ロックを解除してください</small>
+    <button id="btnPortrait" class="link" data-i18n="rotate.portrait">縦のまま遊ぶ</button>
   </div>
 
   <section id="title" class="screen">
     <div class="logo">
-      <div class="logo-main">ちゃぶ台返し</div>
-      <div class="logo-sub">リメンバー</div>
+      <div class="logo-main" data-i18n="title.main">ちゃぶ台返し</div>
+      <div class="logo-sub" data-i18n="title.sub">リメンバー</div>
     </div>
-    <p class="lead">スマホを振り上げて、ちゃぶ台を<br>競技場の彼方へ飛ばせ！</p>
-    <button id="btnStart" class="btn big">はじめる</button>
+    <p class="lead" data-i18n-html="title.lead">スマホを振り上げて、ちゃぶ台を<br>競技場の彼方へ飛ばせ！</p>
+    <button id="btnStart" class="btn big" data-i18n="title.start">はじめる</button>
     <ul class="notes">
-      <li>⚠ スマホがすっぽ抜けないよう<b>しっかり握って</b>（ストラップ推奨）</li>
-      <li>周りに人や物がないか確認してから遊んでね</li>
-      <li>モーションセンサー・コンパス・マイクを使います</li>
+      <li data-i18n-html="title.note1">⚠ スマホがすっぽ抜けないよう<b>しっかり握って</b>（ストラップ推奨）</li>
+      <li data-i18n="title.note2">周りに人や物がないか確認してから遊んでね</li>
+      <li data-i18n="title.note3">モーションセンサー・コンパス・マイクを使います</li>
     </ul>
+    <p class="lang-sel"><button class="lang-btn" data-lang="ja">日本語</button><button class="lang-btn" data-lang="en">English</button></p>
     <p class="legal">
       <span id="buildInfo"></span>
-      <a href="https://techgym.jp/privacy-policy/" target="_blank" rel="noopener">プライバシーポリシー</a>
-      <span id="adPrivacy" class="hidden">｜<a href="#" id="adPrivacyLink">広告の設定</a></span>
+      <a href="https://techgym.jp/privacy-policy/" data-i18n-href="url.privacy" target="_blank" rel="noopener" data-i18n="legal.privacy">プライバシーポリシー</a>
+      <span id="adPrivacy" class="hidden">｜<a href="#" id="adPrivacyLink" data-i18n="legal.adSettings">広告の設定</a></span>
     </p>
   </section>
 
   <section id="ready" class="screen hidden panel">
-    <div class="best">自己ベスト <b id="bestVal">--</b></div>
-    <div id="windBonus" class="wind-bonus hidden">🎐 次の1投は追い風 <b id="windBonusVal"></b>！</div>
+    <div class="best"><span data-i18n="ready.best">自己ベスト</span> <b id="bestVal">--</b></div>
+    <div id="windBonus" class="wind-bonus hidden"></div>
     <ol id="howtoMotion" class="howto">
-      <li>スマホを横向きに持って、競技場（前）の方を向いて立つ</li>
-      <li>「構える」を押す</li>
-      <li>砲丸投げのように<b>クルッと1回転</b>して正面に戻り、<b>叫びながら</b>スマホを<b>振り上げる！</b></li>
+      <li data-i18n="ready.m1">スマホを横向きに持って、競技場（前）の方を向いて立つ</li>
+      <li data-i18n="ready.m2">「構える」を押す</li>
+      <li data-i18n-html="ready.m3">砲丸投げのように<b>クルッと1回転</b>して正面に戻り、<b>叫びながら</b>スマホを<b>振り上げる！</b></li>
     </ol>
     <ol id="howtoTouch" class="howto hidden">
-      <li>「構える」を押す</li>
-      <li>画面を指で<b>ぐるぐる回して</b>勢いをつける</li>
-      <li>そのまま<b>右上にシュッ！</b>とフリック（叫ぶと気合アップ）</li>
+      <li data-i18n="ready.t1">「構える」を押す</li>
+      <li data-i18n-html="ready.t2">画面を指で<b>ぐるぐる回して</b>勢いをつける</li>
+      <li data-i18n-html="ready.t3">そのまま<b>右上にシュッ！</b>とフリック（叫ぶと気合アップ）</li>
     </ol>
-    <div class="ehou"><span id="ehouYear"></span>年の恵方 <b id="ehouVal"></b> に向かって投げると縁起ボーナス</div>
+    <div id="ehou" class="ehou"></div>
     <div id="chips" class="chips"></div>
-    <button id="btnArm" class="btn big">構える</button>
+    <button id="btnArm" class="btn big" data-i18n="ready.arm">構える</button>
     <button id="btnMode" class="link"></button>
   </section>
 
@@ -69,26 +70,26 @@
     <div id="hudTitle" class="hud-title">回れ！叫べ！<br>振り上げろ！</div>
     <div id="hudSub" class="hud-sub"></div>
     <div class="meters">
-      <div class="meter"><span>腕力</span><div class="bar"><i id="mAcc"></i></div></div>
-      <div class="meter"><span>キレ</span><div class="bar"><i id="mGyro"></i></div></div>
-      <div class="meter"><span>気合</span><div class="bar"><i id="mVoice"></i></div></div>
-      <div class="meter-row"><span>回転 <b id="mSpin">0°</b></span><span>向き <b id="mDir">--</b></span></div>
+      <div class="meter"><span data-i18n="hud.acc">腕力</span><div class="bar"><i id="mAcc"></i></div></div>
+      <div class="meter"><span data-i18n="hud.gyro">キレ</span><div class="bar"><i id="mGyro"></i></div></div>
+      <div class="meter"><span data-i18n="hud.voice">気合</span><div class="bar"><i id="mVoice"></i></div></div>
+      <div class="meter-row"><span><span data-i18n="hud.spin">回転</span> <b id="mSpin">0°</b></span><span><span data-i18n="hud.dir">向き</span> <b id="mDir">--</b></span></div>
     </div>
-    <button id="btnCancel" class="btn small ghost">やめる</button>
+    <button id="btnCancel" class="btn small ghost" data-i18n="hud.cancel">やめる</button>
   </section>
 
   <section id="result" class="screen hidden">
     <div class="card">
       <div id="resKind" class="res-kind hidden"></div>
       <div class="res-dist"><span id="resDist">0.00</span><small>m</small></div>
-      <div id="resFoul" class="res-foul hidden">ファウル</div>
-      <div id="resNew" class="res-new hidden">🎉 自己ベスト更新！</div>
+      <div id="resFoul" class="res-foul hidden" data-i18n="res.foul">ファウル</div>
+      <div id="resNew" class="res-new hidden" data-i18n="res.new">🎉 自己ベスト更新！</div>
       <div id="resTitle" class="res-title"></div>
       <div class="btns">
-        <button id="btnAgain" class="btn">もう一度</button>
-        <button id="btnShare" class="btn ghost">シェア</button>
+        <button id="btnAgain" class="btn" data-i18n="res.again">もう一度</button>
+        <button id="btnShare" class="btn ghost" data-i18n="res.share">シェア</button>
       </div>
-      <button id="btnWind" class="btn small ad hidden">📺 広告を見て、次の1投を追い風にする</button>
+      <button id="btnWind" class="btn small ad hidden"></button>
       <p id="resTip" class="tip"></p>
       <!-- 横画面は高さが小さいので、ボタンを先に見せて詳しい数値はスクロールで読む -->
       <table id="resTable" class="res-table"></table>

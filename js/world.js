@@ -4,6 +4,7 @@ import {
   TABLE_HW, TABLE_HH, DISH_LAYOUT, DISH_COLOR, FOOD_COLOR, DAD_HANDS_UP,
 } from './render.js';
 import { WORLD_RECORD, SECTOR_HALF } from './physics.js';
+import { t } from './i18n.js';
 
 const G = 9.8;
 const D2R = Math.PI / 180;
@@ -12,7 +13,7 @@ const TABLE_REST = { x: 0.68, y: TABLE_HH };
 const PIVOT = { x: TABLE_REST.x + 0.29, y: 0 }; // ちゃぶ台は奥の脚を支点に起き上がる
 const READY_HANDS = [0.31, 0.33];
 const SCENE_X = 0.45; // 親父とちゃぶ台の中心あたり
-const LINES = ['こんな飯が食えるかぁ！', 'ちゃぶ台返しじゃあ！', '父をなめるなぁ！', 'ええい、やめじゃ！', 'なんじゃこの味噌汁は！', 'おかわりが遅いっ！'];
+const LINE_COUNT = 6; // 親父のセリフ（i18n の line.0〜line.5）
 
 const ease = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 const rot = (x, y, a) => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a)];
@@ -79,7 +80,7 @@ export class World {
     this.launch = launch;
     this.phase = 'windup';
     this.t = 0;
-    this.bubble = { text: LINES[Math.floor(Math.random() * LINES.length)], t: 0, on: 'dad' };
+    this.bubble = { text: t(`line.${Math.floor(Math.random() * LINE_COUNT)}`), t: 0, on: 'dad' };
   }
 
   tablePose(phi) {
@@ -114,7 +115,7 @@ export class World {
       this.objs = [t2, this.main];
       this.dad.visible = false;
       tv = [t2.vx, t2.vy];
-      this.bubble = { text: 'あ〜れ〜〜っ！', t: 0, on: 'main' };
+      this.bubble = { text: t('line.dad'), t: 0, on: 'main' };
     }
     tb.visible = false;
 
@@ -448,8 +449,8 @@ export class World {
       ctx.fill();
       outlinedText(ctx, label, px, top - 10, 11, '#fff', '#222');
     };
-    flag(WORLD_RECORD, '#e74c3c', `砲丸投げ世界記録 ${WORLD_RECORD}m`);
-    if (this.best > 0) flag(this.best, '#f1c40f', `自己ベスト ${this.best.toFixed(2)}m`);
+    flag(WORLD_RECORD, '#e74c3c', t('flag.wr', { d: WORLD_RECORD }));
+    if (this.best > 0) flag(this.best, '#f1c40f', t('flag.best', { d: this.best.toFixed(2) }));
     if (this.landX != null) {
       // 計測メジャー
       const y = this.groundY + 6;
@@ -462,7 +463,7 @@ export class World {
       ctx.stroke();
       ctx.setLineDash([]);
       const foul = this.launch.foul;
-      flag(this.landX, foul ? '#ff3030' : '#ffd400', foul ? 'ファウル' : '');
+      flag(this.landX, foul ? '#ff3030' : '#ffd400', foul ? t('flag.foul') : '');
       const label = `${this.landX.toFixed(2)}m`;
       ctx.font = `30px ${FONT}`;
       const half = ctx.measureText(label).width / 2 + 8;
@@ -540,8 +541,8 @@ export class World {
     const m = this.main;
     const d = this.landX ?? Math.max(0, m.x);
     const w = L.wind;
-    const wtxt = `風 ${w >= 0 ? '→ 追い風' : '← 向かい風'} ${Math.abs(w).toFixed(1)}m/s`;
-    const high = m.y > 3 ? `高さ ${m.y.toFixed(1)}m` : '';
+    const wtxt = t('fly.wind', { arrow: w >= 0 ? '→' : '←', kind: t(w >= 0 ? 'st.tail' : 'st.head'), v: Math.abs(w).toFixed(1) });
+    const high = m.y > 3 ? t('fly.height', { h: m.y.toFixed(1) }) : '';
     if (this.landscape) {
       // 横画面: 計器は上の隅に。飛んでいる物は画面上端から 30% 以上離してある
       const size = Math.min(100, this.H * 0.24);

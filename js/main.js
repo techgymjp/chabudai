@@ -1,13 +1,20 @@
 import { SensorHub, TouchThrow } from './sensors.js';
 import { AudioFX } from './audio.js';
 import { World } from './world.js';
-import { computeLaunch, meterScores, rankTitle, tipFor, dirName, ehouOf, WORLD_RECORD, TAILWIND } from './physics.js';
+import { computeLaunch, meterScores, rankIndex, tipKey, dirIndex, ehouOf, WORLD_RECORD, TAILWIND } from './physics.js';
+import { t, dirLabel, applyI18n, setLang } from './i18n.js';
 import { createAds } from './ads.js';
 
 const $ = (id) => document.getElementById(id);
 // Android アプリ（Capacitor）で動いているか
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const plugin = (name) => (NATIVE && window.Capacitor.Plugins ? window.Capacitor.Plugins[name] : null);
+const dirName = (deg) => dirLabel(dirIndex(deg));
+const rankTitle = (d) => t(`rank.${rankIndex(d)}`);
+
+applyI18n();
+// タイトル画面の言語切り替え
+document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
 // シェア時に載せるURL（ゲームの紹介記事）
 const SHARE_URL = 'https://techgym.jp/column/claude-code-game-chabudai/';
 const canvas = $('game');
@@ -83,7 +90,7 @@ $('btnStart').addEventListener('click', () => {
   const mic = audio.requestMic();
   sensors.start();
   $('btnStart').disabled = true;
-  $('btnStart').textContent = '準備中…';
+  $('btnStart').textContent = t('title.preparing');
   Promise.all([perm, mic]).then(() => {
     audio.attachMic();
     setTimeout(() => {
@@ -102,20 +109,20 @@ function showReady() {
   world.best = best;
   $('bestVal').textContent = best > 0 ? `${best.toFixed(2)} m` : '--';
   const year = new Date().getFullYear();
-  $('ehouVal').textContent = `${dirName(ehouOf(year))}`;
-  $('ehouYear').textContent = year;
+  $('ehou').innerHTML = t('ready.ehou', { year, dir: dirName(ehouOf(year)) });
   const chip = (name, ok) => `<span class="chip ${ok ? 'on' : 'off'}">${ok ? '●' : '×'} ${name}</span>`;
   $('chips').innerHTML = [
-    chip('加速度', sensors.motionSeen),
-    chip('ジャイロ', sensors.gyroSeen),
-    chip('コンパス', sensors.compassSeen),
-    chip('マイク', audio.micOk),
+    chip(t('chip.acc'), sensors.motionSeen),
+    chip(t('chip.gyro'), sensors.gyroSeen),
+    chip(t('chip.compass'), sensors.compassSeen),
+    chip(t('chip.mic'), audio.micOk),
   ].join('');
   const motion = state.mode === 'motion';
   $('howtoMotion').classList.toggle('hidden', !motion);
   $('howtoTouch').classList.toggle('hidden', motion);
-  $('btnMode').textContent = motion ? 'タッチ操作で遊ぶ' : 'センサー操作に戻す';
+  $('btnMode').textContent = t(motion ? 'ready.toTouch' : 'ready.toMotion');
   $('btnMode').classList.toggle('hidden', !sensors.motionSeen);
+  $('windBonus').innerHTML = t('ready.wind', { v: `+${TAILWIND.toFixed(1)}m/s` });
   $('windBonus').classList.toggle('hidden', !state.tailwind);
   show('ready');
 }
@@ -131,10 +138,9 @@ $('btnArm').addEventListener('click', () => {
   state.disp = { acc: 0, gyro: 0, voice: 0 };
   if (state.mode === 'motion') sensors.startRecording(onThrow);
   else touch.start(onThrow);
-  $('hudSub').textContent = state.mode === 'motion'
-    ? '競技場の方を向いて…クルッと回って、叫んで、振り上げろ！'
-    : '画面を指でぐるぐる回して → 右上にシュッ！とフリック';
-  $('hudTitle').innerHTML = state.mode === 'motion' ? '回れ！叫べ！<br>振り上げろ！' : 'ぐるぐる回して<br>右上にフリック！';
+  const motion = state.mode === 'motion';
+  $('hudSub').textContent = t(motion ? 'hud.subMotion' : 'hud.subTouch');
+  $('hudTitle').innerHTML = t(motion ? 'hud.titleMotion' : 'hud.titleTouch');
   clearTimeout(state.timer);
   state.timer = setTimeout(forceThrow, 15000);
   show('hud');
@@ -201,34 +207,34 @@ function showResult() {
   if (isNew) store.set('chabudai.best', d);
   world.best = Math.max(best, isNew ? d : 0);
 
-  $('resKind').textContent = L.dadFlies ? '👴 まさかの親父が飛んだ！' : '';
+  $('resKind').textContent = L.dadFlies ? t('res.dadFlies') : '';
   $('resKind').classList.toggle('hidden', !L.dadFlies);
   $('resDist').textContent = d.toFixed(2);
   $('resFoul').classList.toggle('hidden', !L.foul);
-  $('resTitle').textContent = L.foul ? '（参考記録）' : `称号「${rankTitle(d)}」`;
+  $('resTitle').textContent = L.foul ? t('res.ref') : t('res.rank', { r: rankTitle(d) });
   $('resNew').classList.toggle('hidden', !isNew);
 
   const s = L.s;
   const hasMic = audio.micOk;
   const rows = [
-    ['腕力（加速度）', `${m.accPeak.toFixed(1)} m/s²`, s.acc],
-    ['瞬発力（加加速度）', `${Math.round(m.jerkPeak)} m/s³`, s.jerk],
-    ['手首のキレ（ジャイロ）', `${Math.round(m.gyroPeak)} °/s`, s.gyro],
-    ['回転（スピン）', `${Math.round(m.spinDeg)}°`, s.spin],
-    ['気合（声）', hasMic && m.voiceDb != null ? `${Math.round(m.voiceDb)} dB` : 'マイクなし', s.voice],
+    [t('st.acc'), `${m.accPeak.toFixed(1)} m/s²`, s.acc],
+    [t('st.jerk'), `${Math.round(m.jerkPeak)} m/s³`, s.jerk],
+    [t('st.gyro'), `${Math.round(m.gyroPeak)} °/s`, s.gyro],
+    [t('st.spin'), `${Math.round(m.spinDeg)}°`, s.spin],
+    [t('st.voice'), hasMic && m.voiceDb != null ? `${Math.round(m.voiceDb)} dB` : t('st.noMic'), s.voice],
   ].map(([k, v, sc]) => `<tr><th>${k}</th><td>${v}</td><td>${bar(sc)}</td></tr>`);
   const extra = [
-    ['振り上げ角度', `${Math.round(L.elev)}° → 射出 ${Math.round(L.angle)}°`],
-    ['向き', m.heading != null ? `${dirName(m.heading)}${L.ehouHit ? ' <b class="lucky">恵方ボーナス！</b>' : ''}` : '不明'],
-    ['正面からのズレ', `${L.lateral >= 0 ? '右' : '左'} ${Math.abs(L.lateral).toFixed(1)}°${L.foul ? '（セクター外）' : ''}`],
-    ['風', `${L.wind >= 0 ? '追い風' : '向かい風'} ${Math.abs(L.wind).toFixed(1)} m/s`],
-    ['初速', `${Math.round(L.v0 * 3.6)} km/h`],
+    [t('st.elev'), t('st.elevV', { e: Math.round(L.elev), a: Math.round(L.angle) })],
+    [t('st.dir'), m.heading != null ? `${dirName(m.heading)}${L.ehouHit ? ` <b class="lucky">${t('st.ehou')}</b>` : ''}` : t('st.unknown')],
+    [t('st.dev'), `${t(L.lateral >= 0 ? 'st.right' : 'st.left')} ${Math.abs(L.lateral).toFixed(1)}°${L.foul ? t('st.outside') : ''}`],
+    [t('st.wind'), `${t(L.wind >= 0 ? 'st.tail' : 'st.head')} ${Math.abs(L.wind).toFixed(1)} m/s`],
+    [t('st.v0'), `${Math.round(L.v0 * 3.6)} km/h`],
   ].map(([k, v]) => `<tr><th>${k}</th><td colspan="2">${v}</td></tr>`);
   $('resTable').innerHTML = rows.concat(extra).join('');
-  $('resTip').textContent = `💡 ${tipFor(L, hasMic)}`;
+  $('resTip').textContent = `💡 ${t(tipKey(L, hasMic))}`;
   $('btnWind').classList.toggle('hidden', !Ads.available || state.tailwind);
   $('btnWind').disabled = false;
-  $('btnWind').textContent = '📺 広告を見て、次の1投を追い風にする';
+  $('btnWind').textContent = t('res.wind');
   show('result');
 }
 
@@ -255,23 +261,20 @@ $('btnWind').addEventListener('click', async () => {
     return;
   }
   $('btnWind').disabled = false;
-  if (r === 'unavailable') $('btnWind').textContent = '広告を読み込めませんでした';
+  if (r === 'unavailable') $('btnWind').textContent = t('res.adFail');
 });
-$('windBonusVal').textContent = `+${TAILWIND.toFixed(1)}m/s`;
 
 $('btnShare').addEventListener('click', async () => {
   const { L } = state;
   const d = world.landX.toFixed(2);
-  const who = L.dadFlies ? '親父を' : 'ちゃぶ台を';
-  const text = L.foul
-    ? `ちゃぶ台返しリメンバーで${who}${d}m飛ばした…けどファウル！ #ちゃぶ台返しリメンバー`
-    : `ちゃぶ台返しリメンバーで${who}${d}m飛ばした！ 称号「${rankTitle(world.landX)}」 #ちゃぶ台返しリメンバー`;
+  const who = t(L.dadFlies ? 'share.dad' : 'share.table');
+  const text = t(L.foul ? 'share.foul' : 'share.text', { who, d, r: rankTitle(world.landX) });
   const url = SHARE_URL;
   const nativeShare = plugin('Share');
   if (nativeShare) {
-    try { await nativeShare.share({ title: 'ちゃぶ台返しリメンバー', text, url, dialogTitle: 'シェア' }); } catch { /* キャンセル */ }
+    try { await nativeShare.share({ title: t('app.name'), text, url, dialogTitle: t('share.dialog') }); } catch { /* キャンセル */ }
   } else if (navigator.share) {
-    try { await navigator.share({ title: 'ちゃぶ台返しリメンバー', text, url }); } catch { /* キャンセル */ }
+    try { await navigator.share({ title: t('app.name'), text, url }); } catch { /* キャンセル */ }
   } else {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
   }
@@ -307,9 +310,9 @@ $('adPrivacyLink').addEventListener('click', (e) => { e.preventDefault(); Ads.sh
 /* ---------- ループ ---------- */
 
 function updateHud() {
-  const t = performance.now() / 1000;
+  const now = performance.now() / 1000;
   const db = audio.level();
-  if (db != null) state.voice.push({ t, db });
+  if (db != null) state.voice.push({ t: now, db });
   const src = state.mode === 'motion' ? sensors.live : touch.live;
   const sc = meterScores({ accPeak: src.lin, jerkPeak: 0, gyroPeak: src.gyro, spinDeg: 0, voiceDb: db, voiceTime: 0 }, db != null);
   const D = state.disp;

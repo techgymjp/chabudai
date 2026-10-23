@@ -7,8 +7,8 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // 頭打ちせずに伸び続ける正規化 (0〜1)
 const soft = (x, k) => 1 - Math.exp(-Math.max(0, x) / k);
 
-export const DIR16 = ['北', '北北東', '北東', '東北東', '東', '東南東', '南東', '南南東', '南', '南南西', '南西', '西南西', '西', '西北西', '北西', '北北西'];
-export const dirName = (deg) => DIR16[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16];
+// 16 方位の番号（北=0 から時計回り）。名前は i18n の dirLabel で引く
+export const dirIndex = (deg) => Math.round((((deg % 360) + 360) % 360) / 22.5) % 16;
 export const angDiff = (a, b) => ((a - b + 540) % 360) - 180;
 
 // その年の恵方（西暦の下1桁で決まる）
@@ -60,37 +60,22 @@ export function computeLaunch(m, hasMic, opts = {}) {
   return { s, power, v0, angle, elev, lateral, foul, wind, ehou, ehouHit, spinRate, dadFlies, luck };
 }
 
-const TITLES = [
-  [5, 'ちゃぶ台を撫でただけ'],
-  [12, '反抗期の中学生'],
-  [WORLD_RECORD, 'ちょっと短気なお父さん'],
-  [40, '頑固親父'],
-  [60, '昭和の雷親父'],
-  [85, 'ちゃぶ台返し名人'],
-  [110, 'ちゃぶ台返し世界王者'],
-  [Infinity, '伝説のちゃぶ台神'],
-];
+// 称号の番号（rank.0〜rank.7）を飛距離で決める
+const RANK_MAX = [5, 12, WORLD_RECORD, 40, 60, 85, 110, Infinity];
 
-export function rankTitle(d) {
-  return TITLES.find(([max]) => d < max)[1];
+export function rankIndex(d) {
+  return RANK_MAX.findIndex((max) => d < max);
 }
 
-const TIPS = {
-  acc: 'もっと勢いよく、腕全体でスマホを振り上げよう！',
-  jerk: '「溜めて→一気に！」緩急をつけると瞬発力が上がる',
-  gyro: '手首のスナップを効かせると、ちゃぶ台がよく回って伸びる',
-  spin: '砲丸投げのように、投げる前にクルッと1回転してみよう',
-  voice: '恥ずかしがらずに「こんな飯が食えるかぁ！」と叫ぼう。声の大きさ＝気合',
-};
-
-export function tipFor(L, hasMic) {
-  if (L.foul) return '正面からズレてファウル！ 1回転してちょうど正面を向いた瞬間に振り上げよう';
-  if (L.angle < 28) return 'もう少し上向きに振り上げると、もっと飛ぶ！';
-  if (L.angle > 55) return '真上に振り上げすぎ！ 斜め前方を狙おう';
+// 次の1投へのアドバイス（i18n のキーを返す）
+export function tipKey(L, hasMic) {
+  if (L.foul) return 'tip.foul';
+  if (L.angle < 28) return 'tip.low';
+  if (L.angle > 55) return 'tip.high';
   let worst = null;
   for (const k in WEIGHTS) {
     if (k === 'voice' && !hasMic) continue;
     if (!worst || L.s[k] < L.s[worst]) worst = k;
   }
-  return TIPS[worst];
+  return `tip.${worst}`;
 }

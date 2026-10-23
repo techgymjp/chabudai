@@ -1,4 +1,6 @@
 // 描画パーツ。親父・ちゃぶ台・食器はメートル単位・y軸上向きのローカル座標で描く
+import { t } from './i18n.js';
+
 const lerp = (a, b, t) => a + (b - a) * t;
 const lerpP = (p, q, t) => [lerp(p[0], q[0], t), lerp(p[1], q[1], t)];
 
@@ -371,13 +373,14 @@ export function drawDish(ctx, type) {
 
 const CLOUDS = [[0.1, 0.12, 1], [0.55, 0.08, 0.8], [0.85, 0.2, 1.2], [1.3, 0.15, 0.9], [1.7, 0.06, 1.1]];
 const CROWD = ['#e74c3c', '#f1c40f', '#3498db', '#ecf0f1', '#9b59b6', '#2ecc71', '#e67e22', '#34495e', '#fd79a8'];
+// 広告看板の色（文字は i18n の ad.0〜ad.5）
 const ADS = [
-  ['ちゃぶ台返し連盟', '#c0392b', '#fff'],
-  ['育毛トニック', '#1e3799', '#fff'],
-  ['昭和食堂', '#f6e58d', '#c0392b'],
-  ['みそ汁はあったかいうちに', '#fff', '#2d3436'],
-  ['雷おやじ', '#2d3436', '#fdcb6e'],
-  ['ハゲ ✕ 頑固', '#e17055', '#fff'],
+  ['#c0392b', '#fff'],
+  ['#1e3799', '#fff'],
+  ['#f6e58d', '#c0392b'],
+  ['#fff', '#2d3436'],
+  ['#2d3436', '#fdcb6e'],
+  ['#e17055', '#fff'],
 ];
 
 export function drawSky(ctx, W, H, hy, camPx, lift = 0) {
@@ -439,7 +442,9 @@ export function drawStands(ctx, W, H, hy, camPx) {
   ctx.textBaseline = 'middle';
   for (let i = Math.floor(boff / bw) - 1, n = i + Math.ceil(W / bw) + 2; i < n; i++) {
     const x = i * bw - boff;
-    const [txt, bg, fg] = ADS[((i % ADS.length) + ADS.length) % ADS.length];
+    const k = ((i % ADS.length) + ADS.length) % ADS.length;
+    const [bg, fg] = ADS[k];
+    const txt = t(`ad.${k}`);
     ctx.fillStyle = bg;
     ctx.fillRect(x, hy - boardH, bw - 2, boardH);
     ctx.fillStyle = fg;
