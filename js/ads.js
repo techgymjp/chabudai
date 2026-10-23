@@ -5,10 +5,9 @@ export const AD_UNITS = {
     interstitial: 'ca-app-pub-3940256099942544/1033173712',
     rewarded: 'ca-app-pub-3940256099942544/5224354917',
   },
-  // TODO: リワードの広告ユニットを作成したら差し替える（差し替えるまで Google Play 用のビルドは scripts/build-web.js が止める）
   production: {
     interstitial: 'ca-app-pub-6411535997477460/6049073954',
-    rewarded: 'ca-app-pub-6411535997477460/XXXXXXXXXX',
+    rewarded: 'ca-app-pub-6411535997477460/8399905121',
   },
 };
 

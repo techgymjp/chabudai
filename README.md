@@ -78,10 +78,8 @@ Android アプリでのみ広告を表示します（Web 版には広告は出�
 
 - EU・英国など同意が必要な地域では、初回起動時に Google の同意確認画面が出ます。その地域では、タイトル画面の「広告の設定」から同意内容をいつでも変更できます。
 - タイトル画面にプライバシーポリシー（https://techgym.jp/privacy-policy/ ）へのリンクを表示しています。
-- **本番の ID はまだ入っていません。** AdMob でアプリと広告ユニットを作成したら、次の 2 か所を差し替えてください。
-  差し替えるまでは、Google Play 用のビルド（`ADMOB_MODE=production`）は `scripts/build-web.js` がエラーで止めます。
-  - 広告ユニット ID（インタースティシャル・リワード）：`js/ads.js` の `production`
-  - AdMob のアプリ ID：`android/app/src/main/res/values/strings.xml` の `admob_app_id`（今は Google のテスト用アプリ ID）
+- 本番の ID の場所：広告ユニット ID（インタースティシャル・リワード）は `js/ads.js` の `production`、AdMob のアプリ ID は `android/app/src/main/res/values/strings.xml` の `admob_app_id` です。
+  ID が未設定（`XXXXXXXXXX` やテスト用のアプリ ID）のままだと、Google Play 用のビルド（`ADMOB_MODE=production`）は `scripts/build-web.js` がエラーで止めます。
 - 動作確認用 APK（Release の `chabudai.apk`）は常に **Google のテスト広告** を表示します。自分でタップしても問題ありません。
 - 本番の広告を自分でタップするとアカウント停止の対象になるので注意してください。
 
@@ -119,9 +117,8 @@ npm run android:open   # Android Studio で開く
    | `ANDROID_KEYSTORE_PASSWORD` | キーストアのパスワード |
    | `ANDROID_KEY_ALIAS` | `upload` |
    | `ANDROID_KEY_PASSWORD` | 鍵のパスワード |
-2. 上の「広告」の本番 ID を差し替えて push する
-3. Actions の「Android build」が終わると、署名済みの `chabudai-release-aab`（.aab）ができる
-4. [Google Play Console](https://play.google.com/console) でアプリを作成し、.aab をアップロードする
+2. Actions の「Android build」が終わると、署名済みの `chabudai-release-aab`（.aab）ができる
+3. [Google Play Console](https://play.google.com/console) でアプリを作成し、.aab をアップロードする
    （広告を含む・広告 ID を使用する、の申告が必要です。データセーフティでは、マイクの音声は端末内で音量を測るだけで収集・送信しないことも申告に合わせてください）
 
 バージョン番号（versionCode）は Actions の実行回数が自動で使われます。表示用のバージョン名は `package.json` の `version` です。
