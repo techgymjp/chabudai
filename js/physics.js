@@ -1,6 +1,7 @@
 // センサー値 → 初速・角度などへの変換（いろんなセンサーを混ぜて記録をバラけさせる）
 export const SECTOR_HALF = 17.46; // 砲丸投げの投てき角度 34.92° の半分
 export const WORLD_RECORD = 23.56; // 砲丸投げ男子世界記録 (m)
+export const TAILWIND = 3; // リワード広告のごほうびの追い風 (m/s)
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // 頭打ちせずに伸び続ける正規化 (0〜1)
@@ -29,7 +30,8 @@ export function meterScores(m, hasMic) {
 
 export const WEIGHTS = { acc: 0.28, jerk: 0.12, gyro: 0.2, spin: 0.22, voice: 0.18 };
 
-export function computeLaunch(m, hasMic) {
+// opts.tailwind: 広告を見たごほうびで、この1投を追い風にする
+export function computeLaunch(m, hasMic, opts = {}) {
   const s = meterScores(m, hasMic);
   let power = 0;
   for (const k in WEIGHTS) power += WEIGHTS[k] * s[k];
@@ -47,7 +49,7 @@ export function computeLaunch(m, hasMic) {
   const lateral = m.releaseDev != null ? clamp(m.releaseDev * 0.3, -45, 45) : (Math.random() - 0.5) * 12;
   const foul = Math.abs(lateral) > SECTOR_HALF;
 
-  const wind = Math.round((Math.random() * 5 - 2.5) * 10) / 10;
+  const wind = opts.tailwind ? TAILWIND : Math.round((Math.random() * 5 - 2.5) * 10) / 10;
   const spinRate = 3 + s.gyro * 12;
 
   // ごくたまに親父が飛ぶ。回りすぎて目を回すと確率アップ

@@ -1,9 +1,13 @@
 import { SensorHub, TouchThrow } from './sensors.js';
 import { AudioFX } from './audio.js';
 import { World } from './world.js';
-import { computeLaunch, meterScores, rankTitle, tipFor, dirName, ehouOf, WORLD_RECORD } from './physics.js';
+import { computeLaunch, meterScores, rankTitle, tipFor, dirName, ehouOf, WORLD_RECORD, TAILWIND } from './physics.js';
+import { createAds } from './ads.js';
 
 const $ = (id) => document.getElementById(id);
+// Android アプリ（Capacitor）で動いているか
+const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const plugin = (name) => (NATIVE && window.Capacitor.Plugins ? window.Capacitor.Plugins[name] : null);
 // シェア時に載せるURL（ゲームの紹介記事）
 const SHARE_URL = 'https://techgym.jp/column/claude-code-game-chabudai/';
 const canvas = $('game');
@@ -12,6 +16,7 @@ const sensors = new SensorHub();
 const audio = new AudioFX();
 const touch = new TouchThrow(canvas);
 const world = new World(audio);
+const Ads = createAds(audio);
 
 const store = {
   get(k, d) {
@@ -30,6 +35,8 @@ const state = {
   timer: null,
   m: null,
   L: null,
+  tailwind: false, // リワード広告を見て、次の1投を追い風にする
+  plays: 0,
 };
 world.best = store.get('chabudai.best', 0);
 
@@ -60,6 +67,7 @@ $('btnPortrait').addEventListener('click', () => {
 
 // Android は全画面にすると横向きに固定できる（iOS は非対応なので案内表示だけ）
 function lockLandscape() {
+  if (NATIVE) return; // アプリは AndroidManifest で横画面に固定している
   const el = document.documentElement;
   if (!el.requestFullscreen || !screen.orientation || !screen.orientation.lock) return;
   el.requestFullscreen({ navigationUI: 'hide' })
@@ -108,6 +116,7 @@ function showReady() {
   $('howtoTouch').classList.toggle('hidden', motion);
   $('btnMode').textContent = motion ? 'タッチ操作で遊ぶ' : 'センサー操作に戻す';
   $('btnMode').classList.toggle('hidden', !sensors.motionSeen);
+  $('windBonus').classList.toggle('hidden', !state.tailwind);
   show('ready');
 }
 
@@ -131,12 +140,13 @@ $('btnArm').addEventListener('click', () => {
   show('hud');
 });
 
-$('btnCancel').addEventListener('click', () => {
+function cancelThrow() {
   clearTimeout(state.timer);
   sensors.stopRecording();
   touch.stop();
   showReady();
-});
+}
+$('btnCancel').addEventListener('click', cancelThrow);
 
 function forceThrow() {
   if (state.mode === 'motion') sensors.finishNow();
@@ -160,7 +170,9 @@ function onThrow(m) {
   m.voiceDb = voice.db;
   m.voiceTime = voice.time;
   if (m.heading == null) m.heading = sensors.heading;
-  const L = computeLaunch(m, audio.micOk);
+  const L = computeLaunch(m, audio.micOk, { tailwind: state.tailwind });
+  state.tailwind = false;
+  state.plays++;
   state.m = m;
   state.L = L;
   show(null);
@@ -214,13 +226,38 @@ function showResult() {
   ].map(([k, v]) => `<tr><th>${k}</th><td colspan="2">${v}</td></tr>`);
   $('resTable').innerHTML = rows.concat(extra).join('');
   $('resTip').textContent = `💡 ${tipFor(L, hasMic)}`;
+  $('btnWind').classList.toggle('hidden', !Ads.available || state.tailwind);
+  $('btnWind').disabled = false;
+  $('btnWind').textContent = '📺 広告を見て、次の1投を追い風にする';
   show('result');
 }
 
-$('btnAgain').addEventListener('click', () => {
+// 2 回に 1 回、「もう一度」の前に全画面広告を出す（Android アプリのみ）
+let againBusy = false;
+$('btnAgain').addEventListener('click', async () => {
+  if (againBusy) return;
+  againBusy = true;
+  if (state.plays % 2 === 0) await Ads.showInterstitial();
+  againBusy = false;
   audio.pop();
   showReady();
 });
+
+// リワード広告: 最後まで見ると、次の1投が追い風になる
+$('btnWind').addEventListener('click', async () => {
+  $('btnWind').disabled = true;
+  const r = await Ads.showRewarded();
+  if (r === 'rewarded') {
+    state.tailwind = true;
+    $('btnWind').classList.add('hidden');
+    audio.pop();
+    showReady();
+    return;
+  }
+  $('btnWind').disabled = false;
+  if (r === 'unavailable') $('btnWind').textContent = '広告を読み込めませんでした';
+});
+$('windBonusVal').textContent = `+${TAILWIND.toFixed(1)}m/s`;
 
 $('btnShare').addEventListener('click', async () => {
   const { L } = state;
@@ -230,12 +267,42 @@ $('btnShare').addEventListener('click', async () => {
     ? `ちゃぶ台返しリメンバーで${who}${d}m飛ばした…けどファウル！ #ちゃぶ台返しリメンバー`
     : `ちゃぶ台返しリメンバーで${who}${d}m飛ばした！ 称号「${rankTitle(world.landX)}」 #ちゃぶ台返しリメンバー`;
   const url = SHARE_URL;
-  if (navigator.share) {
+  const nativeShare = plugin('Share');
+  if (nativeShare) {
+    try { await nativeShare.share({ title: 'ちゃぶ台返しリメンバー', text, url, dialogTitle: 'シェア' }); } catch { /* キャンセル */ }
+  } else if (navigator.share) {
     try { await navigator.share({ title: 'ちゃぶ台返しリメンバー', text, url }); } catch { /* キャンセル */ }
   } else {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
   }
 });
+
+/* ---------- アプリ（Android） ---------- */
+
+// アプリが裏に回ったら音を止め、計測中なら取り消す
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (state.screen === 'hud') cancelThrow();
+    audio.suspend();
+  } else if (!Ads.showing) {
+    audio.resume();
+  }
+});
+
+// Android の戻るボタン：計測中は取り消し、投げている最中は無視、それ以外の画面ではアプリを閉じる
+if (plugin('App')) {
+  plugin('App').addListener('backButton', () => {
+    if (state.screen === 'hud') cancelThrow();
+    else if (state.screen !== null) plugin('App').exitApp();
+  });
+}
+
+// どのビルドが入っているか分かるよう、アプリ版はタイトル画面にバージョンを出す
+if (window.APP_VERSION && window.APP_VERSION !== 'dev') $('buildInfo').textContent = window.APP_VERSION;
+
+// EU など同意が必要な地域では、タイトル画面から広告の同意内容を変更できるようにする
+Ads.initDone.then(() => { if (Ads.privacyOptionsRequired) $('adPrivacy').classList.remove('hidden'); });
+$('adPrivacyLink').addEventListener('click', (e) => { e.preventDefault(); Ads.showPrivacyOptions(); });
 
 /* ---------- ループ ---------- */
 

@@ -34,7 +34,7 @@
 
 計算式は `js/physics.js` にまとまっています。
 
-## 動かし方
+## 動かし方（Web 版）
 
 ビルド不要の静的サイトです。モーションセンサーとマイクは **HTTPS** でないと使えないので、
 GitHub Pages などの HTTPS ホスティングに置いてスマホで開いてください。
@@ -48,12 +48,98 @@ python3 -m http.server 8000
 
 iPhone ではモーションセンサーの許可ダイアログが出るので「許可」を選んでください。
 
+Vercel に置く場合は `vercel.json` の設定で `npm run build` を実行し、`www/` を公開します（Android アプリに同梱するのと同じファイルです）。
+
+見出しのフォント（Dela Gothic One）は、ゲームで使う文字だけに絞ったものを `fonts/` に同梱しています。
+新しい文字を画面に足して、その文字だけ別のフォントになる場合は、元のフォントから作り直してください
+（`pyftsubset` で、`index.html` と `js/*.js` に出てくる文字、かな、英数字を含めます）。
+
+## Android 版（Google Play 配布用）
+
+[Capacitor](https://capacitorjs.com/) でゲームのファイルをアプリ内に同梱しているため、ネットにつながっていなくても遊べます。
+
+- 横画面固定・全画面表示（ステータスバー／ナビゲーションバーを隠す）
+- プレイ中は画面が暗くならない
+- Android の戻るボタン：計測中は取り消し、それ以外の画面ではアプリを終了
+- 別のアプリに切り替えると音を止め、計測中なら取り消す
+- 「シェア」は Android の共有メニューから LINE や X などを選べる
+- マイクは叫び声の大きさを測るためだけに使います（録音・送信はしません）。初回に許可を求められます
+
+アプリ ID は `jp.techgym.chabudai` です（Google Play に一度公開すると変更できません）。
+
+### 広告（Google AdMob）
+
+Android アプリでのみ広告を表示します（Web 版には広告は出ません）。
+
+| 広告 | タイミング |
+| --- | --- |
+| インタースティシャル（全画面） | 結果画面で「もう一度」を押したとき、2 回に 1 回 |
+| リワード | 結果画面の「広告を見て、次の1投を追い風にする」。最後まで見ると、次の1投が追い風 +3.0m/s になる |
+
+- EU・英国など同意が必要な地域では、初回起動時に Google の同意確認画面が出ます。その地域では、タイトル画面の「広告の設定」から同意内容をいつでも変更できます。
+- タイトル画面にプライバシーポリシー（https://techgym.jp/privacy-policy/ ）へのリンクを表示しています。
+- **本番の ID はまだ入っていません。** AdMob でアプリと広告ユニットを作成したら、次の 2 か所を差し替えてください。
+  差し替えるまでは、Google Play 用のビルド（`ADMOB_MODE=production`）は `scripts/build-web.js` がエラーで止めます。
+  - 広告ユニット ID（インタースティシャル・リワード）：`js/ads.js` の `production`
+  - AdMob のアプリ ID：`android/app/src/main/res/values/strings.xml` の `admob_app_id`（今は Google のテスト用アプリ ID）
+- 動作確認用 APK（Release の `chabudai.apk`）は常に **Google のテスト広告** を表示します。自分でタップしても問題ありません。
+- 本番の広告を自分でタップするとアカウント停止の対象になるので注意してください。
+
+### ビルド方法
+
+**GitHub Actions（自動）**: Web 版や `android/` を変更して push すると、`.github/workflows/android.yml` が動作確認用の APK を作ります。
+既定ブランチのビルドは GitHub の Release（`android-latest`）に自動で載るので、Android 端末で次の URL を開くか QR コードを読み取るだけで最新版をダウンロードできます。
+
+https://github.com/techgymjp/chabudai/releases/latest/download/chabudai.apk
+
+<img src="docs/apk-qr.png" alt="APK ダウンロード用 QR コード" width="180">
+
+ダウンロードした `chabudai.apk` を開き、「提供元不明のアプリ」のインストールを許可するとインストールできます。
+動作確認用の署名鍵（`android/app/debug.keystore`）はリポジトリで固定しているので、新しいビルドもアンインストールせずに上書きインストールできます。
+（Release に載る APK はデバッグ版です。Google Play には下の手順で作る署名済み .aab を使います）
+
+**手元の PC（Android Studio）**:
+
+```bash
+npm ci
+npm run android:sync   # Web ファイルを www/ にまとめて Android プロジェクトへコピー
+npm run android:open   # Android Studio で開く
+```
+
+アイコンと起動画面は `assets/` の元画像から `npx @capacitor/assets generate --android` で作っています。
+
+### Google Play へ公開する手順
+
+1. GitHub のリポジトリの Settings → Secrets and variables → Actions に、アップロード鍵の情報を 4 つ登録する（鍵は他のアプリと同じものを使えます）
+   | 名前 | 内容 |
+   | --- | --- |
+   | `ANDROID_KEYSTORE_BASE64` | `base64 -i upload.jks \| tr -d '\n'` の出力 |
+   | `ANDROID_KEYSTORE_PASSWORD` | キーストアのパスワード |
+   | `ANDROID_KEY_ALIAS` | `upload` |
+   | `ANDROID_KEY_PASSWORD` | 鍵のパスワード |
+2. 上の「広告」の本番 ID を差し替えて push する
+3. Actions の「Android build」が終わると、署名済みの `chabudai-release-aab`（.aab）ができる
+4. [Google Play Console](https://play.google.com/console) でアプリを作成し、.aab をアップロードする
+   （広告を含む・広告 ID を使用する、の申告が必要です。データセーフティでは、マイクの音声は端末内で音量を測るだけで収集・送信しないことも申告に合わせてください）
+
+バージョン番号（versionCode）は Actions の実行回数が自動で使われます。表示用のバージョン名は `package.json` の `version` です。
+
 ## ファイル構成
 
 - `index.html` / `style.css` — 画面とUI
-- `js/main.js` — 画面遷移とゲーム進行
+- `js/main.js` — 画面遷移とゲーム進行、Android アプリ向けの処理（戻るボタン・シェア・広告）
 - `js/sensors.js` — 加速度・ジャイロ・姿勢・コンパスの取得と投てき判定、タッチ操作
 - `js/audio.js` — マイク音量と効果音の合成
 - `js/physics.js` — センサー値から初速・角度・ファウルなどを決める
 - `js/world.js` — 投てきアニメーション、飛行の物理、カメラ
 - `js/render.js` — 親父・ちゃぶ台・食器・競技場の描画
+- `js/ads.js` — AdMob 広告（Android アプリのみ）
+- `scripts/build-web.js` — Android アプリに同梱するファイルを `www/` にまとめる
+- `android/` — Android プロジェクト（Capacitor）
+
+## ライセンス
+
+著作権はテックジム株式会社に帰属します（All rights reserved）。許可なく複製・改変・再配布すること、
+Web サイトやアプリ（Google Play、App Store など）として公開・販売すること、名前・ロゴ・アイコン・画像を使うことを禁止します。
+テックジムの受講生が学習目的で複製・改変することは許可しますが、アプリストアでの公開・広告の掲載・販売などの商用利用は禁止です。
+詳しくは [LICENSE](LICENSE) を見てください（同梱しているフォントは SIL Open Font License 1.1 です）。

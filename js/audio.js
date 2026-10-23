@@ -145,6 +145,15 @@ export class AudioFX {
     }
   }
 
+  // アプリが裏に回ったときや広告の表示中は音を止める
+  suspend() {
+    if (this.ctx && this.ctx.state === 'running') this.ctx.suspend();
+  }
+
+  resume() {
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  }
+
   pop() {
     if (!this._ok()) return;
     this._tone(this.ctx.currentTime, 600, 0.12, 0.25, 'sine', 900);

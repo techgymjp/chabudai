@@ -12,10 +12,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
+  <link rel="preload" href="fonts/DelaGothicOne-subset.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
+  <script src="js/ads-config.js"></script>
+  <script src="js/build-info.js"></script>
 </head>
 <body>
   <canvas id="game"></canvas>
@@ -39,10 +39,16 @@
       <li>周りに人や物がないか確認してから遊んでね</li>
       <li>モーションセンサー・コンパス・マイクを使います</li>
     </ul>
+    <p class="legal">
+      <span id="buildInfo"></span>
+      <a href="https://techgym.jp/privacy-policy/" target="_blank" rel="noopener">プライバシーポリシー</a>
+      <span id="adPrivacy" class="hidden">｜<a href="#" id="adPrivacyLink">広告の設定</a></span>
+    </p>
   </section>
 
   <section id="ready" class="screen hidden panel">
     <div class="best">自己ベスト <b id="bestVal">--</b></div>
+    <div id="windBonus" class="wind-bonus hidden">🎐 次の1投は追い風 <b id="windBonusVal"></b>！</div>
     <ol id="howtoMotion" class="howto">
       <li>スマホを横向きに持って、競技場（前）の方を向いて立つ</li>
       <li>「構える」を押す</li>
@@ -78,12 +84,14 @@
       <div id="resFoul" class="res-foul hidden">ファウル</div>
       <div id="resNew" class="res-new hidden">🎉 自己ベスト更新！</div>
       <div id="resTitle" class="res-title"></div>
-      <table id="resTable" class="res-table"></table>
-      <p id="resTip" class="tip"></p>
       <div class="btns">
         <button id="btnAgain" class="btn">もう一度</button>
         <button id="btnShare" class="btn ghost">シェア</button>
       </div>
+      <button id="btnWind" class="btn small ad hidden">📺 広告を見て、次の1投を追い風にする</button>
+      <p id="resTip" class="tip"></p>
+      <!-- 横画面は高さが小さいので、ボタンを先に見せて詳しい数値はスクロールで読む -->
+      <table id="resTable" class="res-table"></table>
     </div>
   </section>
 

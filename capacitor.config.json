@@ -1,0 +1,8 @@
+{
+  "appId": "jp.techgym.chabudai",
+  "appName": "ちゃぶ台返しリメンバー",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#5fb4f0"
+  }
+}

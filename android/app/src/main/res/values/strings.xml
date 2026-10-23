@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ちゃぶ台返しリメンバー</string>
+    <string name="title_activity_main">ちゃぶ台返しリメンバー</string>
+    <string name="package_name">jp.techgym.chabudai</string>
+    <string name="custom_url_scheme">jp.techgym.chabudai</string>
+    <!-- TODO: AdMob でアプリを追加したら、そのアプリ ID に差し替える（今は Google 公式のテスト用アプリ ID） -->
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+</resources>
