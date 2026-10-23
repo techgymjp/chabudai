@@ -94,6 +94,8 @@ https://github.com/techgymjp/chabudai/releases/latest/download/chabudai.apk
 
 <img src="docs/apk-qr.png" alt="APK ダウンロード用 QR コード" width="180">
 
+配布・掲示用にタイトル入りの QR コード（`docs/apk-qr-card.png`）もあります。
+
 ダウンロードした `chabudai.apk` を開き、「提供元不明のアプリ」のインストールを許可するとインストールできます。
 動作確認用の署名鍵（`android/app/debug.keystore`）はリポジトリで固定しているので、新しいビルドもアンインストールせずに上書きインストールできます。
 （Release に載る APK はデバッグ版です。Google Play には下の手順で作る署名済み .aab を使います）
