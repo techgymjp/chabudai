@@ -431,10 +431,11 @@ export class World {
   }
 
   drawFlags(ctx) {
-    const flag = (x, color, label) => {
+    // lift: 旗の棒を長くして、近くの旗とラベルが重ならないようにする
+    const flag = (x, color, label, lift = 0) => {
       const px = this.sx(x);
       if (px < -100 || px > this.W + 100) return;
-      const top = this.groundY - 64;
+      const top = this.groundY - 64 - lift;
       ctx.strokeStyle = '#eee';
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -450,7 +451,12 @@ export class World {
       outlinedText(ctx, label, px, top - 10, 11, '#fff', '#222');
     };
     flag(WORLD_RECORD, '#e74c3c', t('flag.wr', { d: WORLD_RECORD }));
-    if (this.best > 0) flag(this.best, '#f1c40f', t('flag.best', { d: this.best.toFixed(2) }));
+    if (this.best > 0) {
+      const label = t('flag.best', { d: this.best.toFixed(2) });
+      ctx.font = `11px ${FONT}`;
+      const near = Math.abs(this.sx(this.best) - this.sx(WORLD_RECORD)) < ctx.measureText(label).width + 20;
+      flag(this.best, '#f1c40f', label, near ? 26 : 0);
+    }
     if (this.landX != null) {
       // 計測メジャー
       const y = this.groundY + 6;

@@ -124,6 +124,8 @@ npm run android:open   # Android Studio で開く
 3. [Google Play Console](https://play.google.com/console) でアプリを作成し、.aab をアップロードする
    （広告を含む・広告 ID を使用する、の申告が必要です。データセーフティでは、マイクの音声は端末内で音量を測るだけで収集・送信しないことも申告に合わせてください）
 
+ストアに載せる画像（アイコン・日英のフィーチャーグラフィック・日英のスクリーンショット）と掲載文の下書きは `docs/store/` にあります（`docs/store/listing.md`）。
+
 バージョン番号（versionCode）は Actions の実行回数が自動で使われます。表示用のバージョン名は `package.json` の `version` です。
 
 ## ファイル構成
