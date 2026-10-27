@@ -181,7 +181,12 @@ JET STRIKE で API キーと証明書を作ってあれば、それを使い回�
 登録画面：https://github.com/techgymjp/chabudai/settings/secrets/actions
 
 まだ作っていない場合の作り方は、JET STRIKE の `docs/IOS_BUILD.md` の 7 章（API キーの作成、証明書の書き出し）と同じです。
-登録が終わったら、Claude Code に「iOS の自動アップロードのワークフローを作って」と頼みます。
+登録すると、`.github/workflows/ios-release.yml` が動くようになります。既定ブランチに push するたびに（または Actions の「iOS release (TestFlight)」→「Run workflow」で）、
+本番広告の設定でビルドし、App Store Connect にアップロードします。10〜30 分ほどで TestFlight に表示されます。
+
+- ビルド番号は「Actions の実行回数 + 10」で自動で上がります（Mac から手でアップロードするときは 1〜10 を使う）
+- Version は `package.json` の `version`（1.0.0）。新しいバージョンで出すときは、そこを上げて push する
+- 審査への提出は、これまでどおり App Store Connect で行う（アップロードしたビルドを選んで提出）
 
 **注意**：証明書（.p12）、そのパスワード、API キー（.p8）は、チャット・AI へのアップロード・リポジトリへのコミットで**絶対に共有しない**でください。
 
