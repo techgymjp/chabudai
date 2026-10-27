@@ -28,6 +28,7 @@ export class World {
     this.cam = { x: SCENE_X, ppm: 150, lift: 0 };
     this.basePpm = 150;
     this.agitation = 0;
+    this.hideHud = false; // ストア用の画像を撮るときに、計器と吹き出しを消す
     this.onLand = null;
     this.onDone = null;
     this.reset();
@@ -357,6 +358,7 @@ export class World {
       }
     }
     this.drawParts(ctx);
+    if (this.hideHud) return;
     this.drawBubble(ctx);
     if (this.phase === 'flight') this.drawHud(ctx);
   }

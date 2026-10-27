@@ -12,12 +12,22 @@ for (const item of ['index.html', 'style.css', 'js', 'fonts', 'icon.svg', 'manif
 // Google Play 用のビルドでは本番の広告を使う
 const mode = process.env.ADMOB_MODE === 'production' ? 'production' : 'test';
 if (mode === 'production') {
-  // 本番の ID を入れ忘れたまま Google Play 用のビルドを作らないようにする
+  // 本番の ID を入れ忘れたまま、ストア用のビルドを作らないようにする。
+  // ADMOB_PLATFORM（android / ios）でどちらの ID を確かめるか決める（未指定なら両方）
+  const target = process.env.ADMOB_PLATFORM;
   const ads = fs.readFileSync(path.join(root, 'js', 'ads.js'), 'utf8');
-  const strings = fs.readFileSync(path.join(root, 'android', 'app', 'src', 'main', 'res', 'values', 'strings.xml'), 'utf8');
   const problems = [];
-  if (/production:[\s\S]*XXXXXXXXXX/.test(ads)) problems.push('js/ads.js の本番の広告ユニット ID');
-  if (strings.includes('ca-app-pub-3940256099942544')) problems.push('android/app/src/main/res/values/strings.xml の admob_app_id（テスト用のアプリ ID のまま）');
+  const block = (name) => ads.slice(ads.indexOf(`  ${name}: {`), ads.indexOf('\n  },', ads.indexOf(`  ${name}: {`)));
+  if (target !== 'ios') {
+    const strings = fs.readFileSync(path.join(root, 'android', 'app', 'src', 'main', 'res', 'values', 'strings.xml'), 'utf8');
+    if (/production:[\s\S]*XXXXXXXXXX/.test(block('android'))) problems.push('js/ads.js の Android 用の本番の広告ユニット ID');
+    if (strings.includes('ca-app-pub-3940256099942544')) problems.push('android/app/src/main/res/values/strings.xml の admob_app_id（テスト用のアプリ ID のまま）');
+  }
+  if (target !== 'android') {
+    const plist = fs.readFileSync(path.join(root, 'ios', 'App', 'App', 'Info.plist'), 'utf8');
+    if (/production:[\s\S]*XXXXXXXXXX/.test(block('ios'))) problems.push('js/ads.js の iOS 用の本番の広告ユニット ID');
+    if (plist.includes('ca-app-pub-3940256099942544')) problems.push('ios/App/App/Info.plist の GADApplicationIdentifier（テスト用のアプリ ID のまま）');
+  }
   if (problems.length) {
     console.error(`本番の AdMob の ID が設定されていません: ${problems.join('、')}`);
     process.exit(1);

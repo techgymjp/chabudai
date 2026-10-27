@@ -44,11 +44,20 @@ export class AudioFX {
 
   attachMic() {
     if (!this.stream || !this.ctx || this.an) return;
-    const src = this.ctx.createMediaStreamSource(this.stream);
+    this.src = this.ctx.createMediaStreamSource(this.stream);
     this.an = this.ctx.createAnalyser();
     this.an.fftSize = 1024;
-    src.connect(this.an);
+    this.src.connect(this.an);
     this.td = new Float32Array(this.an.fftSize);
+  }
+
+  // マイクを閉じる。iOS はマイクを開いている間、効果音が受話口から小さく鳴るため、投げたら閉じる
+  releaseMic() {
+    if (this.src) this.src.disconnect();
+    if (this.stream) this.stream.getTracks().forEach((tr) => tr.stop());
+    this.src = null;
+    this.stream = null;
+    this.an = null;
   }
 
   // 現在の音量 (dBFS)。マイクが無ければ null

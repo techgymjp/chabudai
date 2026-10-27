@@ -1,0 +1,6 @@
+/* ホーム画面に表示する名前（長いと途中で切れるので短くする） */
+"CFBundleDisplayName" = "ちゃぶ台返し";
+/* App Tracking Transparency の確認画面に表示する説明 */
+"NSUserTrackingUsageDescription" = "あなたに合った広告を表示するために使います。このゲームは広告収入により無料で遊べます。";
+/* マイクの確認画面に表示する説明（叫び声の大きさを測るだけ） */
+"NSMicrophoneUsageDescription" = "叫び声の大きさ（気合）を測るためにマイクを使います。録音や送信はしません。";

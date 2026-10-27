@@ -113,6 +113,37 @@ Hold your phone tight so it doesn't fly out of your hand, and make sure there's 
 
 ---
 
+## App Store（iOS）用の追加項目
+
+App Store Connect のバージョンのページで使う項目です。概要（説明文）は上の「詳しい説明」をそのまま使えます。画像は `docs/store/ios/`（手順は `docs/IOS_BUILD.md`）。
+
+| 項目 | 日本語 | English |
+| --- | --- | --- |
+| 名前（30 文字以内） | ちゃぶ台返しリメンバー | Table Flip Remember |
+| サブタイトル（30 文字以内） | スマホを振り上げてちゃぶ台を飛ばせ | Swing your phone, flip a table |
+
+**プロモーション用テキスト**（170 文字以内。審査なしでいつでも変えられる）
+
+```
+かつて大ヒットした「ちゃぶ台返し」が帰ってきた！スマホを振り上げて、クルッと回って、叫んで、ちゃぶ台を競技場の彼方へ。砲丸投げの世界記録を超えられるか？
+```
+
+```
+The smash-hit "Chabudai Gaeshi" is back! Swing your iPhone, spin and shout to flip a chabudai across a shot put stadium. Can you beat the world record?
+```
+
+**キーワード**（100 文字以内、カンマ区切り・スペースなし。名前に入っている語は書かなくてよい）
+
+```
+ちゃぶ台,親父,昭和,砲丸投げ,体感ゲーム,センサー,ジャイロ,叫ぶ,おもしろ,バカゲー,ストレス発散,飛距離,陸上競技,恵方,スポーツ
+```
+
+```
+chabudai,dad,shot put,throw,motion,sensor,gyro,shout,funny,stress relief,japanese,distance,sports
+```
+
+---
+
 ## Play Console「アプリのコンテンツ」の回答の目安
 
 - **プライバシー ポリシー**: https://techgym.jp/privacy-policy/

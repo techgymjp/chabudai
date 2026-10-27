@@ -128,6 +128,19 @@ npm run android:open   # Android Studio で開く
 
 バージョン番号（versionCode）は Actions の実行回数が自動で使われます。表示用のバージョン名は `package.json` の `version` です。
 
+## iOS 版（App Store 配布用）
+
+Android 版と同じ Capacitor のプロジェクトに `ios/` を足しています（Bundle ID は `jp.techgym.chabudai`）。
+Mac でのビルドと App Store への提出の手順は [docs/IOS_BUILD.md](docs/IOS_BUILD.md) にあります。
+
+- 横画面固定・全画面表示、プレイ中は画面が暗くならない、iPhone 専用（iPad では iPhone 用の画面で動く）
+- 起動時に App Tracking Transparency の確認、「はじめる」でマイクの確認（説明文は日英）
+- iOS はマイクを開いている間は効果音が小さくなるので、投げた瞬間にマイクを閉じ、次の「構える」で開き直す
+- 広告ユニットは Android と別（`js/ads.js` の `ios`）。AdMob のアプリ ID は `ios/App/App/Info.plist` の `GADApplicationIdentifier`
+- App Store 用のビルドは `npm run ios:release`（本番広告）、実機での確認は `npm run ios:sync`（テスト広告）
+- `.github/workflows/ios.yml` が push のたびに、署名なしでビルドできるかを GitHub の Mac で確かめる
+- App Store 用の画像は `docs/store/ios/`、追加の掲載項目（サブタイトル・キーワードなど）は `docs/store/listing.md`
+
 ## ファイル構成
 
 - `index.html` / `style.css` — 画面とUI
@@ -141,6 +154,7 @@ npm run android:open   # Android Studio で開く
 - `js/i18n.js` — 日本語・英語の文言と切り替え
 - `scripts/build-web.js` — Android アプリに同梱するファイルを `www/` にまとめる
 - `android/` — Android プロジェクト（Capacitor）
+- `ios/` — iOS プロジェクト（Capacitor）
 
 ## ライセンス
 

@@ -9,6 +9,8 @@ const $ = (id) => document.getElementById(id);
 // Android アプリ（Capacitor）で動いているか
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const plugin = (name) => (NATIVE && window.Capacitor.Plugins ? window.Capacitor.Plugins[name] : null);
+// iOS アプリでは、投げるたびにマイクを閉じて開き直す（アプリが許可を持っているので確認画面は出ない）
+const IOS_APP = NATIVE && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'ios';
 const dirName = (deg) => dirLabel(dirIndex(deg));
 const rankTitle = (d) => t(`rank.${rankIndex(d)}`);
 
@@ -42,10 +44,14 @@ const state = {
   timer: null,
   m: null,
   L: null,
+  micGranted: false, // マイクの使用を許可されたか
+  hasMic: false,     // 今回の投てきで声を測れたか
   tailwind: false, // リワード広告を見て、次の1投を追い風にする
   plays: 0,
 };
 world.best = store.get('chabudai.best', 0);
+// ストア用の画像の撮影（?shot を付けて開いたときだけ）
+if (new URLSearchParams(location.search).has('shot')) window.__chabudai = { world, audio };
 
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -91,7 +97,8 @@ $('btnStart').addEventListener('click', () => {
   sensors.start();
   $('btnStart').disabled = true;
   $('btnStart').textContent = t('title.preparing');
-  Promise.all([perm, mic]).then(() => {
+  Promise.all([perm, mic]).then(([, micOk]) => {
+    state.micGranted = micOk;
     audio.attachMic();
     setTimeout(() => {
       state.mode = sensors.motionSeen ? 'motion' : 'touch';
@@ -115,7 +122,7 @@ function showReady() {
     chip(t('chip.acc'), sensors.motionSeen),
     chip(t('chip.gyro'), sensors.gyroSeen),
     chip(t('chip.compass'), sensors.compassSeen),
-    chip(t('chip.mic'), audio.micOk),
+    chip(t('chip.mic'), state.micGranted),
   ].join('');
   const motion = state.mode === 'motion';
   $('howtoMotion').classList.toggle('hidden', !motion);
@@ -134,6 +141,7 @@ $('btnMode').addEventListener('click', () => {
 
 $('btnArm').addEventListener('click', () => {
   audio.unlock();
+  if (IOS_APP && state.micGranted && !audio.micOk) audio.requestMic().then(() => audio.attachMic());
   state.voice = [];
   state.disp = { acc: 0, gyro: 0, voice: 0 };
   if (state.mode === 'motion') sensors.startRecording(onThrow);
@@ -150,6 +158,7 @@ function cancelThrow() {
   clearTimeout(state.timer);
   sensors.stopRecording();
   touch.stop();
+  if (IOS_APP) audio.releaseMic();
   showReady();
 }
 $('btnCancel').addEventListener('click', cancelThrow);
@@ -176,7 +185,9 @@ function onThrow(m) {
   m.voiceDb = voice.db;
   m.voiceTime = voice.time;
   if (m.heading == null) m.heading = sensors.heading;
-  const L = computeLaunch(m, audio.micOk, { tailwind: state.tailwind });
+  state.hasMic = audio.micOk;
+  if (IOS_APP) audio.releaseMic();
+  const L = computeLaunch(m, state.hasMic, { tailwind: state.tailwind });
   state.tailwind = false;
   state.plays++;
   state.m = m;
@@ -215,7 +226,7 @@ function showResult() {
   $('resNew').classList.toggle('hidden', !isNew);
 
   const s = L.s;
-  const hasMic = audio.micOk;
+  const hasMic = state.hasMic;
   const rows = [
     [t('st.acc'), `${m.accPeak.toFixed(1)} m/s²`, s.acc],
     [t('st.jerk'), `${Math.round(m.jerkPeak)} m/s³`, s.jerk],

@@ -1,0 +1,6 @@
+/* Home screen name (short so it isn't cut off) */
+"CFBundleDisplayName" = "Table Flip";
+/* App Tracking Transparency prompt */
+"NSUserTrackingUsageDescription" = "This identifier is used to show you more relevant ads. The game is free thanks to ads.";
+/* Microphone prompt (the game only measures how loud you shout) */
+"NSMicrophoneUsageDescription" = "Shout while you throw! The microphone is only used to measure how loud you are. Nothing is recorded or sent.";
