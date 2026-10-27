@@ -23,9 +23,8 @@
    - バンドル ID：1 で登録したもの ／ SKU：`chabudai`（あとから変更不可）／ ユーザアクセス：アクセス制限なし
 3. **AdMob**
    - 「アプリを追加」→ **iOS** →「ストアに掲載されていない」で登録し、**インタースティシャル**と**リワード**の広告ユニットを作る
-   - アプリ ID（`~` が入っているもの）と広告ユニット ID 2 つ（`/` が入っているもの）を Claude Code に渡す。
-     `js/ads.js` の `ios.production` と `ios/App/App/Info.plist` の `GADApplicationIdentifier` に入ります。
-     それまでは Google のテスト用 ID が入っていて、`npm run ios:release` はエラーで止まります（入れ忘れ防止）
+   - アプリ ID（`~5465392665`）は `ios/App/App/Info.plist` の `GADApplicationIdentifier`、広告ユニット ID（インタースティシャル `/8380038451`、リワード `/9613229075`）は `js/ads.js` の `ios.production` に設定済み。
+     広告ユニットを消して作り直したら、新しい ID を Claude Code に渡して入れ直す
    - 「プライバシーとメッセージ」→「欧州の規制」のメッセージに iOS アプリも追加する
 
 ---

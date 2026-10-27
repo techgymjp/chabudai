@@ -17,10 +17,9 @@ export const AD_UNITS = {
       interstitial: 'ca-app-pub-3940256099942544/4411468910',
       rewarded: 'ca-app-pub-3940256099942544/1712485313',
     },
-    // TODO: リワードの広告ユニットを作成したら差し替える（差し替えるまで App Store 用のビルドは scripts/build-web.js が止める）
     production: {
       interstitial: 'ca-app-pub-6411535997477460/8380038451',
-      rewarded: 'ca-app-pub-6411535997477460/XXXXXXXXXX',
+      rewarded: 'ca-app-pub-6411535997477460/9613229075',
     },
   },
 };
