@@ -15,6 +15,9 @@ const dirName = (deg) => dirLabel(dirIndex(deg));
 const rankTitle = (d) => t(`rank.${rankIndex(d)}`);
 
 applyI18n();
+// Web 版では Android アプリ版（Google Play）へのリンクを出す。アプリの中と、Android アプリを入れられない iPhone・iPad では出さない
+const APPLE_DEVICE = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+if (!NATIVE && !APPLE_DEVICE) $('getApp').classList.remove('hidden');
 // タイトル画面の言語切り替え
 document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
 // シェア時に載せるURL（ゲームの紹介記事）

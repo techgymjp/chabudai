@@ -59,6 +59,8 @@ Vercel に置く場合は `vercel.json` の設定で `npm run build` を実行�
 
 ## Android 版（Google Play 配布用）
 
+Google Play で公開中：https://play.google.com/store/apps/details?id=jp.techgym.chabudai （Web 版のタイトル画面にもリンクがあります。iPhone・iPad とアプリの中では表示しません）
+
 [Capacitor](https://capacitorjs.com/) でゲームのファイルをアプリ内に同梱しているため、ネットにつながっていなくても遊べます。
 
 - 横画面固定・全画面表示（ステータスバー／ナビゲーションバーを隠す）
