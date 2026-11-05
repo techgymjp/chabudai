@@ -98,6 +98,7 @@ canvas {
 /* Android アプリ版へのリンク（Web 版だけ） */
 .get-app { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 10px; background: #1f1f1f; color: #fff; font-size: 13px; font-weight: bold; text-decoration: none; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3); pointer-events: auto; }
 .get-app-icon { color: #3ddc84; font-size: 14px; }
+.get-app-link { margin-top: 10px; font-size: 12px; color: var(--wood-d); text-decoration: underline; }
 .lang-sel { margin: 0; display: flex; gap: 8px; justify-content: center; }
 .lang-btn { font-size: 13px; padding: 5px 14px; border-radius: 16px; border: 2px solid var(--wood-d); background: var(--cream); color: var(--wood-d); cursor: pointer; }
 .lang-btn.on { background: var(--wood-d); color: #fff; font-weight: bold; }
