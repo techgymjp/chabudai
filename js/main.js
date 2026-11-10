@@ -15,12 +15,14 @@ const dirName = (deg) => dirLabel(dirIndex(deg));
 const rankTitle = (d) => t(`rank.${rankIndex(d)}`);
 
 applyI18n();
-// Web 版では Android アプリ版（Google Play）へのリンクを出す。アプリの中と、Android アプリを入れられない iPhone・iPad では出さない
+// web-only:start（Web 版だけ。アプリには入れない：scripts/build-web.js が消す）
+// Web 版では Android アプリ版（Google Play）へのリンクを出す。Android アプリを入れられない iPhone・iPad のブラウザでは出さない
 const APPLE_DEVICE = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 if (!NATIVE && !APPLE_DEVICE) {
   $('getApp').classList.remove('hidden');
   $('getAppReady').classList.remove('hidden');
 }
+// web-only:end
 // タイトル画面の言語切り替え
 document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
 // シェア時に載せるURL（ゲームの紹介記事）
@@ -56,8 +58,10 @@ const state = {
   plays: 0,
 };
 world.best = store.get('chabudai.best', 0);
+// web-only:start
 // ストア用の画像の撮影（?shot を付けて開いたときだけ）
 if (new URLSearchParams(location.search).has('shot')) window.__chabudai = { world, audio };
+// web-only:end
 
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);

@@ -16,7 +16,9 @@ const dict = {
     'title.note3': 'モーションセンサー・コンパス・マイクを使います',
     'legal.privacy': 'プライバシーポリシー',
     'legal.adSettings': '広告の設定',
+    // web-only:start
     'title.getApp': 'Android アプリ版（Google Play）',
+    // web-only:end
     'url.privacy': 'https://techgym.jp/privacy-policy/',
     'ready.best': '自己ベスト',
     'ready.wind': '🎐 次の1投は追い風 <b>{v}</b>！',
@@ -116,7 +118,9 @@ const dict = {
     'title.note3': 'Uses the motion sensors, compass and microphone',
     'legal.privacy': 'Privacy Policy',
     'legal.adSettings': 'Ad settings',
+    // web-only:start
     'title.getApp': 'Get the Android app on Google Play',
+    // web-only:end
     'url.privacy': 'https://techgym.jp/privacy-policy-en/',
     'ready.best': 'Best',
     'ready.wind': '🎐 Tailwind <b>{v}</b> on your next throw!',

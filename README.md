@@ -154,7 +154,7 @@ Mac でのビルドと App Store への提出の手順は [docs/IOS_BUILD.md](do
 - `js/render.js` — 親父・ちゃぶ台・食器・競技場の描画
 - `js/ads.js` — AdMob 広告（Android アプリのみ）
 - `js/i18n.js` — 日本語・英語の文言と切り替え
-- `scripts/build-web.js` — Android アプリに同梱するファイルを `www/` にまとめる
+- `scripts/build-web.js` — 公開・同梱するファイルを `www/` にまとめる。`npm run build` は Web 版、`npm run build:app` はアプリ用（Web 版だけの部分 `web-only` を取り除く）
 - `android/` — Android プロジェクト（Capacitor）
 - `ios/` — iOS プロジェクト（Capacitor）
 

@@ -30,6 +30,8 @@ jobs:
     env:
       HAS_SECRETS: ${{ secrets.IOS_DIST_CERT_P12_BASE64 != '' && secrets.ASC_KEY_P8_BASE64 != '' }}
       TEAM_ID: GNM3VTX9YG
+      BUNDLE_ID: jp.techgym.chabudai
+      PROFILE_NAME: chabudai App Store (GitHub Actions)
     steps:
       - name: Skip when the signing secrets are not registered
         if: env.HAS_SECRETS != 'true'
@@ -60,7 +62,7 @@ jobs:
       - name: Copy web assets into the iOS project (production ads)
         if: env.HAS_SECRETS == 'true'
         run: |
-          ADMOB_MODE=production ADMOB_PLATFORM=ios npm run build
+          ADMOB_MODE=production ADMOB_PLATFORM=ios npm run build:app
           npx cap sync ios
 
       - name: Install the distribution certificate and the API key
@@ -79,23 +81,30 @@ jobs:
           security import "$RUNNER_TEMP/dist.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          echo "KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
           rm "$RUNNER_TEMP/dist.p12"
           echo "$KEY_BASE64" | base64 -d > "$RUNNER_TEMP/AuthKey.p8"
           echo "ASC_KEY_PATH=$RUNNER_TEMP/AuthKey.p8" >> "$GITHUB_ENV"
 
-      # 署名用のプロファイルは、API キーを使って Xcode が自動で作る（-allowProvisioningUpdates）
-      - name: Archive
+      # Xcode の自動署名は、まっさらな GitHub の Mac では実行のたびに開発用の証明書を新しく作り、上限に達すると失敗する。
+      # そこで、登録済みの配布用証明書だけを使う App Store 用のプロファイルを API で作り、App ターゲットだけ手動署名にする
+      - name: Create the App Store provisioning profile
         if: env.HAS_SECRETS == 'true'
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
+          SERIAL=$(security find-certificate -c "Apple Distribution" -p "$KEYCHAIN" | openssl x509 -noout -serial | cut -d= -f2)
+          node .github/scripts/asc-appstore-profile.mjs "$BUNDLE_ID" "$PROFILE_NAME" "$SERIAL"
+          perl -0pi -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;\n\t\t\t\tCODE_SIGN_IDENTITY = "Apple Distribution";\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "$ENV{PROFILE_NAME}";/g' ios/App/App.xcodeproj/project.pbxproj
+          test "$(grep -c 'PROVISIONING_PROFILE_SPECIFIER' ios/App/App.xcodeproj/project.pbxproj)" = 2
+
+      - name: Archive
+        if: env.HAS_SECRETS == 'true'
+        run: |
           set -o pipefail
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
-            DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic \
             MARKETING_VERSION="$VERSION_NAME" CURRENT_PROJECT_VERSION="$VERSION_CODE" \
             archive | tail -60
 
@@ -114,7 +123,10 @@ jobs:
             <key>method</key><string>app-store-connect</string>
             <key>destination</key><string>upload</string>
             <key>teamID</key><string>${TEAM_ID}</string>
-            <key>signingStyle</key><string>automatic</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict><key>${BUNDLE_ID}</key><string>${PROFILE_NAME}</string></dict>
             <key>uploadSymbols</key><true/>
             <key>manageAppVersionAndBuildNumber</key><false/>
           </dict>

@@ -181,7 +181,8 @@ JET STRIKE で API キーと証明書を作ってあれば、それを使い回�
 登録画面：https://github.com/techgymjp/chabudai/settings/secrets/actions
 
 まだ作っていない場合の作り方は、JET STRIKE の `docs/IOS_BUILD.md` の 7 章（API キーの作成、証明書の書き出し）と同じです。
-登録すると、`.github/workflows/ios-release.yml` が動くようになります。既定ブランチに push するたびに（または Actions の「iOS release (TestFlight)」→「Run workflow」で）、
+登録すると、`.github/workflows/ios-release.yml` が動くようになります。
+署名には、登録した配布用証明書と、ワークフローが App Store Connect API で毎回作り直す App Store 用プロファイル（「chabudai App Store (GitHub Actions)」）を使います（新しい証明書は作りません）。既定ブランチに push するたびに（または Actions の「iOS release (TestFlight)」→「Run workflow」で）、
 本番広告の設定でビルドし、App Store Connect にアップロードします。10〜30 分ほどで TestFlight に表示されます。
 
 - ビルド番号は「Actions の実行回数 + 10」で自動で上がります（Mac から手でアップロードするときは 1〜10 を使う）
@@ -211,4 +212,6 @@ JET STRIKE で API キーと証明書を作ってあれば、それを使い回�
 | マイクの確認画面が出ない・気合のメーターが動かない | iPhone の「設定」→ ちゃぶ台返し →「マイク」をオンにする |
 | 投げたあとの効果音が小さい | 本体の消音スイッチ（着信/消音）がオフか確認する。それでも小さいときは Claude Code に伝える |
 | App Store の審査で「Xcode が古い」と言われる | Xcode を最新版に更新してから Archive し直す |
+| 審査で「Guideline 5.6 - Developer Code of Conduct」（審査中に機能を隠している） | Web 版だけの部分（Google Play へのリンクと、iPhone・iPad では隠す処理、撮影用のフック）がアプリにも入っていたのが原因と考えられる。今は `npm run build:app`（`ios:sync`・`ios:release` が使う）がアプリに入れる前に取り除く。端末や日付で出し分ける機能は、アプリには入れない |
+| GitHub Actions の Archive で「maximum number of certificates」 | 以前の自動署名が実行のたびに開発用の証明書を作っていた。今は登録済みの配布用証明書と、API で作るプロファイル（「chabudai App Store (GitHub Actions)」）だけで署名する。上限に近ければ、developer.apple.com の「Certificates」で使っていない Apple Development の証明書を取り消してよい |
 | 本番広告とテスト広告の取り違え | App Store 用は必ず `npm run ios:release`。Xcode から実機で試すときは `npm run ios:sync` に戻す |
