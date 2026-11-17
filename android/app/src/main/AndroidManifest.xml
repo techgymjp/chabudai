@@ -33,6 +33,9 @@
         </provider>
     </application>
 
+    <!-- 横画面に固定しているが、横画面に対応していない端末でも Google Play で配信対象から外れないよう「必須ではない」と明示する -->
+    <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />
+
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
