@@ -9,7 +9,7 @@ export const AD_UNITS = {
     },
     production: {
       interstitial: 'ca-app-pub-6411535997477460/6649410961',
-      rewarded: 'ca-app-pub-6411535997477460/8399905121',
+      rewarded: 'ca-app-pub-6411535997477460/7774790371',
     },
   },
   ios: {
