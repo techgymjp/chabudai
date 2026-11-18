@@ -43,6 +43,8 @@ canvas {
   align-items: center;
   padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 }
+/* バナー広告（アプリのみ）の高さぶん、画面の下端を上げる。js/ads.js が --banner-h を設定する */
+.screen { bottom: var(--banner-h, 0px); }
 .hidden { display: none !important; }
 
 .btn {

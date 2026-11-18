@@ -34,6 +34,7 @@ const audio = new AudioFX();
 const touch = new TouchThrow(canvas);
 const world = new World(audio);
 const Ads = createAds(audio);
+Ads.setBanner(true); // 起動時はタイトル画面
 
 const store = {
   get(k, d) {
@@ -79,6 +80,8 @@ resize();
 function show(id) {
   for (const s of ['title', 'ready', 'hud', 'result']) $(s).classList.toggle('hidden', s !== id);
   state.screen = id;
+  // バナー広告はプレイ中以外の画面（タイトル・構え・結果）だけ。計測中と投げている最中は出さない
+  Ads.setBanner(id === 'title' || id === 'ready' || id === 'result');
 }
 
 /* ---------- タイトル ---------- */

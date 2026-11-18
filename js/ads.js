@@ -6,10 +6,12 @@ export const AD_UNITS = {
     test: {
       interstitial: 'ca-app-pub-3940256099942544/1033173712',
       rewarded: 'ca-app-pub-3940256099942544/5224354917',
+      banner: 'ca-app-pub-3940256099942544/9214589741',
     },
     production: {
       interstitial: 'ca-app-pub-6411535997477460/6649410961',
       rewarded: 'ca-app-pub-6411535997477460/7774790371',
+      banner: 'ca-app-pub-6411535997477460/7234579379',
     },
   },
   ios: {
@@ -37,6 +39,9 @@ export function createAds(sfx) {
   let ready = false;           // 広告をリクエストしてよい状態（初期化と同意確認が済んだ）
   let showing = false;
   let privacyRequired = false; // 「広告の設定」を利用者が開けるようにする必要があるか（EU など）
+  // バナー（プレイ中以外の画面の下端）。iOS は広告ユニットを作るまで出さない（ids.banner がない）
+  let wantBanner = false;      // 今の画面でバナーを出したいか
+  let bannerState = 'none';    // none（未作成）/ shown / hidden
   const waiters = {};          // 表示中の広告が閉じたときに呼ぶ処理
 
   // 広告の種類ごとの読み込み状態
@@ -98,6 +103,9 @@ export function createAds(sfx) {
       } catch (e) { /* 古い iOS など */ }
     }
     let rewarded = false;
+    // バナーの高さぶん、画面の下端を上げてボタンが隠れないようにする（CSS の --banner-h）
+    AdMob.addListener('bannerAdSizeChanged', (size) => setBannerHeight(wantBanner ? size.height : 0));
+    AdMob.addListener('bannerAdFailedToLoad', () => setBannerHeight(0));
     AdMob.addListener('interstitialAdDismissed', () => finish('inter'));
     AdMob.addListener('interstitialAdFailedToShow', () => finish('inter'));
     AdMob.addListener('onRewardedVideoAdShowed', () => { rewarded = false; });
@@ -140,6 +148,34 @@ export function createAds(sfx) {
     return AdMob.showPrivacyOptionsForm().catch(() => {});
   }
 
+  function setBannerHeight(h) {
+    document.documentElement.style.setProperty('--banner-h', `${Math.max(0, h || 0)}px`);
+  }
+
+  // 画面の切り替えのたびに呼ぶ。出したい画面ならバナーを出し（2 回目からは再開）、それ以外では隠す
+  function syncBanner() {
+    if (!AdMob || !ids.banner || !ready) return;
+    if (wantBanner) {
+      if (bannerState === 'shown') return;
+      if (bannerState === 'hidden') AdMob.resumeBanner().catch(() => {});
+      else {
+        AdMob.showBanner({ adId: ids.banner, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0, isTesting: testing })
+          .catch(() => { bannerState = 'none'; setBannerHeight(0); });
+      }
+      bannerState = 'shown';
+    } else if (bannerState === 'shown') {
+      bannerState = 'hidden';
+      setBannerHeight(0);
+      AdMob.hideBanner().catch(() => {});
+    }
+  }
+
+  function setBanner(visible) {
+    wantBanner = visible;
+    if (!visible) setBannerHeight(0);
+    initDone.then(syncBanner);
+  }
+
   const initDone = AdMob ? init() : Promise.resolve();
 
   return {
@@ -150,5 +186,6 @@ export function createAds(sfx) {
     showInterstitial,
     showRewarded,
     showPrivacyOptions,
+    setBanner,
   };
 }
