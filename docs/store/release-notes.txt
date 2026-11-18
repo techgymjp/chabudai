@@ -1,0 +1,10 @@
+<ja-JP>
+・より多くの Android 端末でインストールできるようにしました
+・広告の表示を見直し、タイトル・構え・結果の画面の下に小さな広告を表示するようにしました（プレイ中は表示しません）
+・細かな不具合を修正しました
+</ja-JP>
+<en-US>
+- The app can now be installed on more Android devices
+- Ads have been revised: a small banner now appears at the bottom of the title, get-set and result screens (never during play)
+- Minor bug fixes
+</en-US>
